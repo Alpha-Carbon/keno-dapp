@@ -6,10 +6,10 @@ import "ds-test/test.sol";
 import "./KenoDapp.sol";
 
 contract KenoDappTest is DSTest {
-    KenoDapp dapp;
+    Keno dapp;
 
     function setUp() public {
-        dapp = new KenoDapp();
+        dapp = new Keno();
     }
 
     function testFail_basic_sanity() public {
