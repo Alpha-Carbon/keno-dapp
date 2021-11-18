@@ -107,6 +107,7 @@ contract Keno is Context, Ownable, RandomConsumerBase {
         
         function calculatePayout(uint256 spotKind, uint256 hits, uint256 val) public view returns (uint256) {
             require(spotKind < SPOTS, "spots not supported");
+			require(hits <= spotKind, "cannot have more hits than spots");
             
             Rate[] storage rates = payTable[spotKind - 1];
             uint256 total = 0;
