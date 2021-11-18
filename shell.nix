@@ -16,6 +16,7 @@ in
       pkgs.go-ethereum-unlimited
       pkgs.hevm
       pkgs.ethsign
+	  pkgs.jq
 
       nodePackages.yarn
     ];
