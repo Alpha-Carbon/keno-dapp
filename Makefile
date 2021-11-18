@@ -32,3 +32,17 @@ estimate :; ./scripts/estimate-gas.sh ${contract}
 size   :; ./scripts/contract-size.sh ${contract}
 abi-out :; jq '.contracts."src/Keno.sol".Keno.abi' ./out/dapp.sol.json > ./out/KenoAbi.json
 
+testnet: export DAPP_TESTNET_CHAINID=1337
+testnet: export DAPP_TESTNET_PERIOD=0
+testnet:
+	rm -rf out/testnet
+	dapp testnet --dir ${TESTNET_DIR}
+
+# Deployment helpers
+deploy:; @./scripts/deploy.sh
+
+# local testnet, funding TEST_ADDR with 1000 eth
+deploy-testnet: export ETH_FROM=$(shell seth ls --keystore ${TESTNET_DIR}/8545/keystore | cut -f1)
+deploy-testnet: export ETH_RPC_ACCOUNTS=true
+deploy-testnet: deploy
+deploy-testnet:; seth send --value 1000000000000000000000 ${TEST_ADDR}

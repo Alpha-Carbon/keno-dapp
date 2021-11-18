@@ -36,7 +36,7 @@ contract Keno is Context, Ownable, RandomConsumerBase {
         constructor() {
             // 1 Spot Payout, 1 = $2.5
             payTable[0].push(Rate(0,1));
-            payTable[0].push(Rate(2,1));
+            payTable[0].push(Rate(5,2));
 
             // 2 Spot Payout, 1 = $1 ; 2 = $5
             payTable[1].push(Rate(0,1));
