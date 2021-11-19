@@ -33,6 +33,7 @@ contract Keno is Context, Ownable, RandomConsumerBase {
         uint256 public currentRound;
         uint256 public roundStartTime;
         
+		// https://masslottery.com/games/draw-and-instants/keno/how-to-play
         constructor() {
             // 1 Spot Payout, 1 = $2.5
             payTable[0].push(Rate(0,1));
@@ -80,17 +81,21 @@ contract Keno is Context, Ownable, RandomConsumerBase {
                 Entry memory entry = entries[i];
                 uint256 spots = entry.picks.length;
                 bool[] memory hits = new bool[](spots);
+				uint256 hitsCounter;
                 
                 for(uint256 j = 0; j < spots; j++){
                     uint256 pick = entry.picks[j];
                     
                     for(uint256 k = 0; k < drawing.length; k++) {
                         uint256 drawNumber = drawing[k];
-                        if (drawNumber == pick) hits[i] = true;
+						if (drawNumber == pick) {
+							hits[j] = true;
+							hitsCounter++;
+						}
                     }
                 }
                 
-                uint256 payout = calculatePayout(spots, hits.length, entry.value);
+                uint256 payout = calculatePayout(spots, hitsCounter, entry.value);
                 if (payout > 0) {
                     entry.player.transfer(payout);
                     emit EntryWins(currentRound, entry.player, entry.picks, hits, payout);
