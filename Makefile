@@ -45,4 +45,4 @@ deploy:; @./scripts/deploy.sh
 deploy-testnet: export ETH_FROM=$(shell seth ls --keystore ${TESTNET_DIR}/8545/keystore | cut -f1)
 deploy-testnet: export ETH_RPC_ACCOUNTS=true
 deploy-testnet: deploy
-deploy-testnet:; seth send --value 1000000000000000000000 ${TEST_ADDR}
+# deploy-testnet:; seth send --value 1000000000000000000000 ${TEST_ADDR}

@@ -8,7 +8,7 @@ import "./Hevm.sol";
 contract User {
     Keno internal keno;
 
-    constructor(address _keno) {
+    constructor(address payable _keno) {
         keno = Keno(_keno);
     }
 
@@ -33,9 +33,9 @@ contract KenoTest is DSTest {
     function setUp() public virtual {
         keno = new Keno();
 
-        owner = new User(address(keno));
-        alice = new User(address(keno));
-        bob = new User(address(keno));
+        owner = new User(payable(keno));
+        alice = new User(payable(keno));
+        bob = new User(payable(keno));
 
         keno.transferOwnership(address(owner));
     }

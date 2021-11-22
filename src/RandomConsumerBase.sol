@@ -53,6 +53,6 @@ abstract contract RandomConsumerBase is Context {
      */
     function executeEntropy(uint256 forBlock) external {
 		uint256 entropy = RandomProvider.getEntropy(forBlock);
-        executeImpl(forBlock,42);
+        executeImpl(forBlock, entropy);
     }
 }
