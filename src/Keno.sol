@@ -134,7 +134,7 @@ contract Keno is Context, Ownable, RandomConsumerBase {
         
         Rate[] storage rates = _payTable[spotKind - 1];
         Rate storage rate = rates[hits];
-        return (rate.mul * value) / rate.div;
+        return SafeMath.div(SafeMath.mul(rate.mul, value), rate.div);
     }
         
     //#NOTE this is not audited!

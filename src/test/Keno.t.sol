@@ -12,15 +12,17 @@ contract KenoViewsTest is KenoTest {
     }
 
     function testRounds() public {
-//        hevm.warp(12 minutes); 
-//        hevm.roll(5); 
+		
+		//move evm foward 12 minutes
+		//hevm.warp(12 minutes); 
+		//move evm forward 5 blocks
+		//hevm.roll(5); 
     }
 
 }
 
 contract KenoTransactions is KenoTest {
     function testPlay() public {
-
         // Overflows/underflows
 //        try keno.play(MAX_UINT, "mul", 2) { fail(); } catch Panic(uint) {} // mul overflow
 //        try keno.play(5, "sub", 6) { fail(); } catch Panic(uint) {} // sub underflow
