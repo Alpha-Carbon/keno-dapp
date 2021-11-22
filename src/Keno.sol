@@ -157,7 +157,7 @@ contract Keno is Context, Ownable, RandomConsumerBase {
 
     function play(uint256 forBlock, uint256[] memory numbers) public payable {
         require(forBlock % DRAW_RATE == 0, "invalid round number.");
-        require(msg.value >= MINIMUM_PLAY, "minimum play value not met.");
+        require(msg.value >= MINIMUM_PLAY, "minimum play amount not met.");
         require(numbers.length > 0 && numbers.length < SPOTS, "unsupported spot kind.");
         
         uint256 roundNumber = forBlock / DRAW_RATE;
