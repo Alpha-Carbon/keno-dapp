@@ -2,7 +2,7 @@
 pragma solidity ^0.8.6;
 import "ds-test/test.sol";
 
-import "../../KenoDapp.sol";
+import "../../Keno.sol";
 import "./Hevm.sol";
 
 contract User {

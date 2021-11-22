@@ -1,22 +1,25 @@
 // SPDX-License-Identifier: GPL-3.0
 
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.6;
+
+//#NOTE this is here for convenience.  Use this for REMIX IDE
+// import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/v4.3.2/contracts/utils/Context.sol";
 
 import "@openzeppelin/contracts/utils/Context.sol";
 
 interface IRandomProvider {
     /**
-     * @dev checks the `address` is currently an Oracle 
-     *  
-     */
-	function requireOracle(address sender) external;
-
-    /**
      * @dev Queries historic entropy from VRF Oracle storage 
      * 
      * Returns uint256 
      */
-    function history(uint256 forBlock) external view returns (uint256 entropy);
+    function getEntropy(uint256 forBlock) external view returns (uint256 entropy);
+    
+    /**
+     * @dev checks the `address` is currently an Oracle 
+     *  
+     */
+	function requireOracle(address sender) external;
 }
 
 /**
@@ -40,17 +43,16 @@ abstract contract RandomConsumerBase is Context {
      * 
      * Returns null
      */
-	function receiveRandomImpl(uint256 forBlock, uint256 entropy) internal virtual;
+	function executeImpl(uint256 forBlock, uint256 entropy) internal virtual;
 
     /**
-     * @dev `receiveRandom` is called by the Offchain Worker Oracle and calls the override
-	 * `randmCallbackImpl` after confirming the author is an Oracle
+     * @dev `executeEntropy` attempts to query the stored entropy in the chain `forBlock`
+	 * and delegates the data to the `executeImpl`
      * 
      * Returns null
      */
-    function receiveRandom(uint256 forBlock, uint256 entropy) external {
-        //RandomProvider.requireOracle(_msgSender());
-        receiveRandomImpl(forBlock,entropy);
+    function executeEntropy(uint256 forBlock) external {
+		uint256 entropy = RandomProvider.getEntropy(forBlock);
+        executeImpl(forBlock,42);
     }
 }
-

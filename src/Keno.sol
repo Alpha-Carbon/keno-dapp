@@ -1,6 +1,10 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.6;
 
+//#NOTE this is here for convenience.  Use this for REMIX IDE
+//import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/v4.3.2/contracts/access/Ownable.sol";
+//import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/v4.3.2/contracts/utils/math/SafeMath.sol";
+
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
@@ -25,13 +29,19 @@ contract Keno is Context, Ownable, RandomConsumerBase {
         //How many blocks before draw
         uint256 public constant DRAW_RATE = 1;
         uint256 public constant SPOTS = 5;
+		uint256 public constant MINIMUM_PLAY = 1 ether;
         
         //Fixed size game rules
         mapping(uint256 => Rate[]) payTable;
 
+        //mapping(uint256 => Entry[]) entriesForRounds;
         Entry[] public entries;
         uint256 public currentRound;
         uint256 public roundStartTime;
+
+		//#TODO
+		// Fallback function to be payable
+		// Owner Withdraw
         
 		// https://masslottery.com/games/draw-and-instants/keno/how-to-play
         constructor() {
@@ -66,7 +76,7 @@ contract Keno is Context, Ownable, RandomConsumerBase {
             payTable[4].push(Rate(100,1));
         }
 
-        function receiveRandomImpl(uint256, uint256 entropy) internal virtual override  {
+        function executeImpl(uint256, uint256 entropy) internal virtual override  {
             //#FIXME implement a minimum / maximum value for entry
             //#FIXME decide how to handle the forBlock variable
             
@@ -109,19 +119,14 @@ contract Keno is Context, Ownable, RandomConsumerBase {
             currentRound++;
             delete entries;
         }
-        
-        function calculatePayout(uint256 spotKind, uint256 hits, uint256 val) public view returns (uint256) {
+
+        function calculatePayout(uint256 spotKind, uint256 hits, uint256 value) public view returns (uint256) {
             require(spotKind < SPOTS, "spots not supported");
 			require(hits <= spotKind, "cannot have more hits than spots");
             
             Rate[] storage rates = payTable[spotKind - 1];
-            uint256 total = 0;
-            for (uint256 i = 0; i < hits + 1; i++) {
-                Rate storage rate = rates[i];
-                //#FIXME use safemath!
-                total += (rate.mul * val) / rate.div;
-            }
-            return total;
+            Rate storage rate = rates[hits];
+            return (rate.mul * value) / rate.div;
         }
         
         //#NOTE this is not audited!
@@ -141,8 +146,10 @@ contract Keno is Context, Ownable, RandomConsumerBase {
             }
             return picks;
         }
-        
+
         function play(uint256[] memory numbers) public payable {
+			require(msg.value >= MINIMUM_PLAY, "minimum play value not met");
+
             uint256 spotKind = numbers.length;
             require(spotKind > 0 && spotKind < SPOTS, "must have numbers to play and be a supported spot");
             require(potSufficientForSpot(spotKind, msg.value), "contract does not have enough balance to accept entry");
