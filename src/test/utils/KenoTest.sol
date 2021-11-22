@@ -12,9 +12,13 @@ contract User {
         keno = Keno(_keno);
     }
 
-    function mint(uint256 num) public {
-//       keno.play{ value: price }(address(this), num);
+    function play(uint256 forBlock, uint256[] memory numbers, uint256 price) public {
+		keno.play{ value: price }(forBlock, numbers);
     }
+
+	function withdraw(uint256 amount) public {
+		keno.withdraw(payable(this), amount);
+	}
 
     receive() external payable {}
 }
@@ -32,6 +36,9 @@ contract KenoTest is DSTest {
 
     function setUp() public virtual {
         keno = new Keno();
+
+		(bool success,) = payable(keno).call{value: 1000 ether}("");
+		assertTrue(success);
 
         owner = new User(payable(keno));
         alice = new User(payable(keno));

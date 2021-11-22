@@ -12,20 +12,36 @@ contract KenoViewsTest is KenoTest {
     }
 
     function testRounds() public {
-		
 		//move evm foward 12 minutes
 		//hevm.warp(12 minutes); 
 		//move evm forward 5 blocks
 		//hevm.roll(5); 
     }
-
 }
 
 contract KenoTransactions is KenoTest {
-    function testPlay() public {
-        // Overflows/underflows
-//        try keno.play(MAX_UINT, "mul", 2) { fail(); } catch Panic(uint) {} // mul overflow
-//        try keno.play(5, "sub", 6) { fail(); } catch Panic(uint) {} // sub underflow
-//        try keno.play(MAX_UINT, "add", 42) { fail(); } catch Panic(uint) {} // add overflow
+    function testPlayMinimumNotMet() public {
+	    payable(address(alice)).transfer(100 ether);
+
+		uint256[] memory numbers = new uint256[](3);
+		numbers[0] = 1;
+		numbers[1] = 2;
+		numbers[2] = 3;
+		// try .1 ether
+		try alice.play(1, numbers, 100000000 gwei) { fail(); } catch Error(string memory error) {
+		    assertEq(error, "minimum play amount not met.");
+		}
     }
+
+	function testOwnerWithdraw() public {
+		owner.withdraw(1 ether);
+		assertEq(address(owner).balance, 1 ether);
+		assertEq(address(keno).balance, 999 ether);
+	}
+
+	function testNonOwnerWithdraw() public {
+		try alice.withdraw(1 ether) { fail(); } catch Error(string memory error) {
+		    assertEq(error, "Ownable: caller is not the owner");
+		}
+	}
 }
