@@ -35,6 +35,9 @@ function OBJ_keno(containerOfAll, selectLimit) {
         selectCallback = f;
         // console.log("selectCallback", selectCallback)
     };
+    this.setSelectLimit = (num) => {
+        arrayLimit = num;
+    };
 
     this.getSelected = () => {
         return numArray;

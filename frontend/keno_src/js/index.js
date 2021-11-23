@@ -201,6 +201,10 @@ function gameOBJ(target, selectLimit) {
         keno.setSelectCallback(f)
     }
 
+    this.setSelectLimit = (num) => {
+        keno.setSelectLimit(num)
+    }
+
     function resize() {
         // let minUnit = ~~(Math.min((window.innerHeight) / gameConfig.SCREEN_SCALE_HEIGHT, (window.innerWidth) / gameConfig.SCREEN_SCALE_WIDTH));
         const parent = app.view.parentNode;
