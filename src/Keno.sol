@@ -125,6 +125,7 @@ contract Keno is Context, Ownable, RandomConsumerBase {
             }
         }
 
+        currentRound.resolved = true;
         emit Result(roundNumber, drawing);
     }
         
