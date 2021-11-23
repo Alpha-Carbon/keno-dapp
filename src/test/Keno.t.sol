@@ -7,30 +7,58 @@ contract KenoViewsTest is KenoTest {
     uint256 constant MAX_UINT = 2 ** 256 - 1;
 
     function testOneSpotPayout() public {
-        uint256 payout = keno.calculatePayout(1, 1, 1);
+        uint256 payout = keno.calculatePayout(1, 0, 3);
+        assertEq(payout, 0);
+
+        payout = keno.calculatePayout(1, 1, 1);
         // Fixme maybe some problem here
         assertEq(payout, 2);
     }
 
-    function testOneSpotNonePayout() public {
-        uint256 payout = keno.calculatePayout(1, 0, 3);
-        assertEq(payout, 0);
-    }
-
-    function testTwoSpotNonePayout() public {
+    function testTwoSpotPayout() public {
         uint256 payout = keno.calculatePayout(2, 0, 3);
         assertEq(payout, 0);
-    }
 
-    function testTwoSpotPayout1() public {
-        uint256 payout = keno.calculatePayout(2, 1, 3);
+        payout = keno.calculatePayout(2, 1, 3);
         assertEq(payout, 3);
-    }
 
-    function testTwoSpotPayout2() public {
-        uint256 payout = keno.calculatePayout(2, 2, 3);
+        payout = keno.calculatePayout(2, 2, 3);
         assertEq(payout, 15);
     }
+
+    function testThreeSpotPayout() public {
+        uint256 payout = keno.calculatePayout(3, 0, 3);
+        assertEq(payout, 0);
+
+        payout = keno.calculatePayout(3, 1, 3);
+        assertEq(payout, 0);
+
+        // Fixme maybe some problem with discarding decimal
+        payout = keno.calculatePayout(3, 2, 3);
+        assertEq(payout, 7);
+
+        payout = keno.calculatePayout(3, 3, 3);
+        assertEq(payout, 75);
+    }
+
+
+    function testFourSpotPayout() public {
+        uint256 payout = keno.calculatePayout(4, 0, 3);
+        assertEq(payout, 0);
+
+        payout = keno.calculatePayout(4, 1, 3);
+        assertEq(payout, 0);
+
+        payout = keno.calculatePayout(4, 2, 3);
+        assertEq(payout, 3);
+
+        payout = keno.calculatePayout(4, 3, 3);
+        assertEq(payout, 12);
+
+        payout = keno.calculatePayout(4, 4, 3);
+        assertEq(payout, 300);
+    }
+
 
     function testFiveSpotNonePayout() public {
         uint256 payout = keno.calculatePayout(5, 0, 3);
@@ -86,10 +114,41 @@ contract KenoTransactions is KenoTest {
 		}
 	}
 
-    function testReExecuteEntropy() public {
+    function _testPlayWithInvalidForBlock() public {
         payable(address(alice)).transfer(100 ether);
 
         uint256[] memory betInfo = new uint256[](3);
+        for (uint256 i = 0;  i < 4; i++) {
+            betInfo[i] = i + 1;
+        }
+
+        try alice.play(0, betInfo, 1 ether) {
+            fail();
+        } catch Error(string memory error) {
+            assertEq(error, "invalid round number.");
+        }
+    }
+
+    function testPlayWithInvalidSpotKind() public {
+        payable(address(alice)).transfer(100 ether);
+
+        uint256[] memory betInfo = new uint256[](6);
+        for (uint256 i = 0;  i < 6; i++) {
+            betInfo[i] = i + 1;
+        }
+
+        try alice.play(32, betInfo, 1 ether) {
+            fail();
+        } catch Error(string memory error) {
+            assertEq(error, "unsupported spot kind.");
+        }
+    }
+
+
+    function testReExecuteEntropy() public {
+        payable(address(alice)).transfer(100 ether);
+
+        uint256[] memory betInfo = new uint256[](4);
         for (uint256 i = 0;  i < 4; i++) {
             betInfo[i] = i + 1;
         }
@@ -186,6 +245,25 @@ contract KenoTransactions is KenoTest {
         assertEq(address(keno).balance, vault_expect);
     }
 
+    function testExceedPayout() public {
 
+        payable(address(alice)).transfer(100 ether);
+        uint256 keno_balance = address(keno).balance;
+        uint256 bet_amount = keno_balance / 25 + 2 ether;
 
+        uint256[] memory betInfo = new uint256[](3);
+        betInfo[0] = 30;
+        betInfo[1] = 48;
+        betInfo[2] = 26;
+
+        try alice.play(3, betInfo, bet_amount + 1 ether) {
+            emit log("test exceed payout failed");
+            fail();
+        } catch Error(string memory error) {
+            assertEq(error, "contract does not have enough free balance to accept entry.");
+        }
+
+        assertEq(address(keno).balance, keno_balance);
+        assertEq(address(alice).balance, 100 ether);
+    }
 }
