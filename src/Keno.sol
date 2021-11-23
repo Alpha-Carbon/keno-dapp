@@ -124,12 +124,12 @@ contract Keno is Context, Ownable, RandomConsumerBase {
                 emit EntryWins(roundNumber, entry.player, entry.picks, hits, payout);
             }
         }
-            
+
         emit Result(roundNumber, drawing);
     }
         
     function calculatePayout(uint256 spotKind, uint256 hits, uint256 value) public view returns (uint256) {
-        require(spotKind < SPOTS, "spots not supported.");
+        require(spotKind <= SPOTS, "spots not supported.");
 		require(hits <= spotKind, "cannot have more hits than spots.");
         
         Rate[] storage rates = _payTable[spotKind - 1];
@@ -158,7 +158,7 @@ contract Keno is Context, Ownable, RandomConsumerBase {
     function play(uint256 forBlock, uint256[] memory numbers) public payable {
         require(forBlock % DRAW_RATE == 0, "invalid round number.");
         require(msg.value >= MINIMUM_PLAY, "minimum play amount not met.");
-        require(numbers.length > 0 && numbers.length < SPOTS, "unsupported spot kind.");
+        require(numbers.length > 0 && numbers.length <= SPOTS, "unsupported spot kind.");
         
         uint256 roundNumber = forBlock / DRAW_RATE;
         Round storage round = _rounds[roundNumber / DRAW_RATE];
