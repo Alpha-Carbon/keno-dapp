@@ -256,7 +256,7 @@ contract KenoTransactions is KenoTest {
         betInfo[1] = 48;
         betInfo[2] = 26;
 
-        try alice.play(3, betInfo, bet_amount + 1 ether) {
+        try alice.play(3, betInfo, bet_amount) {
             emit log("test exceed payout failed");
             fail();
         } catch Error(string memory error) {
