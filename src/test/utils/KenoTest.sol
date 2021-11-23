@@ -24,6 +24,10 @@ contract User {
 }
 
 contract KenoTest is DSTest {
+	//to move evm foward 12 minutes:
+	//hevm.warp(12 minutes);
+	//to move evm forward 5 blocks: 
+	//hevm.roll(5);
     Hevm internal constant hevm = Hevm(HEVM_ADDRESS);
 
     // contracts
@@ -35,6 +39,10 @@ contract KenoTest is DSTest {
     User internal bob;
 
     function setUp() public virtual {
+		// start at a random block, so we can test exploit of
+		// trying to resolve games before contract creation
+		hevm.roll(5);
+
         keno = new Keno();
 
 		(bool success,) = payable(keno).call{value: 1000 ether}("");
@@ -45,5 +53,9 @@ contract KenoTest is DSTest {
         bob = new User(payable(keno));
 
         keno.transferOwnership(address(owner));
+
+		// advance chain by 1 block, the soonest possible 
+		// `play` is after the contract's `startBlock`
+		hevm.roll(1);
     }
 }

@@ -56,6 +56,8 @@ abstract contract RandomConsumerBase is Context {
         executeImpl(forBlock, entropy);
     }
 
+	//#FIXME maybe we should inject the IRandomProvider to a test-specific provider instead of
+	//putting this here just for tests
     function executeEntropyForTest(uint256 forBlock, uint256 entropy) external {
         executeImpl(forBlock, entropy);
     }

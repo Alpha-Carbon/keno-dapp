@@ -41,10 +41,15 @@ contract Keno is Context, Ownable, RandomConsumerBase {
     mapping(uint256 => Rate[]) _payTable;
 
     mapping(uint256 => Round) _rounds;
+	uint256 public startBlock;
     uint256 public totalLiabilities;
         
 	// https://masslottery.com/games/draw-and-instants/keno/how-to-play
     constructor() {
+		// make sure no results can be resolved on games where
+		// RNG exists in the history PRIOR to contract creation
+		startBlock = block.number;
+
         // 1 Spot Payout, 1 = $2.5
         _payTable[0].push(Rate(0,1));
         _payTable[0].push(Rate(5,2));
@@ -157,12 +162,11 @@ contract Keno is Context, Ownable, RandomConsumerBase {
     }
 
     function play(uint256 forBlock, uint256[] memory numbers) public payable {
-        require(forBlock % DRAW_RATE == 0, "invalid round number.");
+        uint256 roundNumber = tryGetRound(forBlock);
         require(msg.value >= MINIMUM_PLAY, "minimum play amount not met.");
         require(numbers.length > 0 && numbers.length <= SPOTS, "unsupported spot kind.");
         
-        uint256 roundNumber = forBlock / DRAW_RATE;
-        Round storage round = _rounds[roundNumber / DRAW_RATE];
+        Round storage round = _rounds[roundNumber];
         require(!round.resolved, "round has ended.");
 
         uint256 maxPayout = calculatePayout(numbers.length, numbers.length, msg.value);
@@ -176,6 +180,12 @@ contract Keno is Context, Ownable, RandomConsumerBase {
         totalLiabilities += maxPayout;
         emit NewEntry(roundNumber, _msgSender());
     }
+
+	function tryGetRound(uint256 forBlock) public view returns (uint256) {
+		require(forBlock > startBlock, "round number is before contract creation.");
+        require(forBlock % DRAW_RATE == 0, "invalid round number.");
+        return forBlock / DRAW_RATE;
+	}
         
     function getPaytableFor(uint256 spotKind) public view returns (Rate[] memory) {
         require(spotKind <= SPOTS, "spots not supported.");
