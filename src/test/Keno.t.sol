@@ -103,7 +103,20 @@ contract KenoTransactions is KenoTest {
     }
 
     function testPlayForBlockPriorToStartBlock() public {
-		assertTrue(false, "UNIMPLEMENTED!");
+        payable(address(alice)).transfer(100 ether);
+
+        uint256 forBlock = keno.startBlock() - 1;
+
+        uint256[] memory betInfo = new uint256[](3);
+        for (uint256 i = forBlock;  i < 4; i++) {
+            betInfo[i] = i + 1;
+        }
+
+        try alice.play(forBlock, betInfo, 1 ether) {
+            fail();
+        } catch Error(string memory error) {
+            assertEq(error, "round number is before contract creation.");
+        }
     }
 
 	function testOwnerWithdraw() public {
