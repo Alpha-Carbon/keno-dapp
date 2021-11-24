@@ -59,6 +59,14 @@ function OBJ_background(containerOfAll) {
     nextGameStartTime.string.position.set(xStart, yStart + 45);
     info.addChild(nextGameStartTime.string);
 
+    let currentBlock = {};
+    let currentBlockText = "現在 ";
+    currentBlock.val = '10:00:00';
+    currentBlock.string = new PIXI.Text(currentBlockText + currentBlock.val, textStyle);
+    currentBlock.string.anchor.set(0, 0.5);
+    currentBlock.string.position.set(xStart, yStart + 90);
+    info.addChild(currentBlock.string);
+
     let coordinates = { x: [gameConfig.GAME_SCREEN_MIN_UNIT * 0.55, gameConfig.GAME_SCREEN_MIN_UNIT * 1.2], y: [462, 502, 542] };
     let resultArea = new Array(6);
     for (let i = 0; i < 6; i++) {
@@ -116,6 +124,11 @@ function OBJ_background(containerOfAll) {
         if (text[1]) {
             nextGameStartTime.val = text[1];
             nextGameStartTime.string.text = gameConfig.NEXT_GAMENUMBER_TEXT + text[1];
+        }
+
+        if (text[2]) {
+            currentBlock.val = text[2];
+            currentBlock.string.text = currentBlockText + text[2];
         }
     }
 }

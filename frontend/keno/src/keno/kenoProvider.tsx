@@ -26,13 +26,13 @@ const KenoProvider = ({ children }: KenoProviderProps): React.ReactElement<KenoP
             number: [],
             info: ['', '', '', '', '']
         };
-        //require src/keno/bundle.js exist, or there'll be errors
-        keno.Load({
+        // require src/keno/bundle.js exist, or there'll be errors
+        window.keno.Load({
             sound: "./keno/assets/sound",
             img: "./keno/assets/img",
         })
-        keno.Init(() => {
-            game = new keno.gameOBJ(container, rule?.spots);//input body to append the game
+        window.keno.Init(() => {
+            game = new window.keno.gameOBJ(container, rule?.spots);//input body to append the game
             //get data from server here
 
             game.setTabChangingCallBack((time: number) => { console.log("time since tab unseen " + time) });
@@ -44,7 +44,7 @@ const KenoProvider = ({ children }: KenoProviderProps): React.ReactElement<KenoP
 
 
             // game.setGameNumber(['3141592', 'TE:ST:ING']); // will change game number // can be called any time
-            game.setGameNumber(['  ', '  ']);
+            game.setGameNumber(['  ', '  ', '  ']);
             // game.reset({
             //     number: simLastResult,
             //     // info: ['1410', '大', '单', '前(多)', '双(多)']
@@ -78,9 +78,9 @@ const KenoProvider = ({ children }: KenoProviderProps): React.ReactElement<KenoP
         });
     }
 
-    function mockResult() {
-        return [2, 3, 10, 20, 24, 25, 26, 31, 32, 33, 35, 37, 53, 55, 57, 58, 64, 65, 66, 78];
-    }
+    // function mockResult() {
+    //     return [2, 3, 10, 20, 24, 25, 26, 31, 32, 33, 35, 37, 53, 55, 57, 58, 64, 65, 66, 78];
+    // }
 
 
     useEffect(() => {

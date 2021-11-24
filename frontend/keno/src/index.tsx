@@ -4,6 +4,11 @@ import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
 
+declare global {
+  interface Window { keno: any }
+}
+window.keno = window.keno || {};
+
 ReactDOM.render(
   <React.StrictMode>
     <App />

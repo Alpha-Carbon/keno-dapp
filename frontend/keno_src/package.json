@@ -6,10 +6,11 @@
   "license": "MIT",
   "scripts": {
     "start": "webpack-dev-server -d",
-    "build": "mkdir dist/assets; mkdir dist/assets/img; mkdir dist/assets/sound; cp -R img/* dist/assets/img; cp -R sound/* dist/assets/sound; webpack; cp -R dist/* ../keno/public/keno; cp -R dist/bundle.js ../keno/src/keno/bundle.js",
+    "build": "mkdir dist/assets; mkdir dist/assets/img; mkdir dist/assets/sound; cp -R img/* dist/assets/img; cp -R sound/* dist/assets/sound; webpack; cp -R dist/* ../keno/public/keno;",
     "release": "rm .././zipOutput/keno.zip; zip -r keno.zip dist; mv keno.zip .././zipOutput/keno.zip; gsutil -m cp -R dist/* gs://demo.unionttplay.com/keno",
     "zip-release": "gsutil -m cp -R .././zipOutput/* gs://demo.unionttplay.com/zipFiles"
   },
+  "main": "dist/bundle.js",
   "devDependencies": {
     "file-loader": "^3.0.1",
     "html-webpack-plugin": "^3.2.0",

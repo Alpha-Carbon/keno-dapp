@@ -1,5 +1,5 @@
 import TweenMax from "gsap/TweenMax";
-import MainLoop from "../node_modules/mainloop.js/build/mainloop.min.js"
+import MainLoop from "mainloop.js"
 import * as PIXI from 'pixi.js'
 import "pixi-sound"
 
@@ -63,7 +63,7 @@ function setup() {
 }
 
 function gameOBJ(target, selectLimit) {
-    console.log("version:", "2021.11.22.1545")
+    console.log("version:", "2021.11.24.1815")
     let mainContainer = new PIXI.Container();
 
     let countdownTimer;//object

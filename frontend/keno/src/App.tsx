@@ -1,22 +1,41 @@
-import React from 'react';
-import logo from './logo.svg';
 import './App.css';
 import KenoProvider from './keno/kenoProvider';
-import InputPanel from './components/panel';
+import Game from './components/game';
 import ResultDisplay from './components/resultDisplay';
 import Web3Connect from './components/Web3Connect'
-import { Web3Provider } from './hooks/useWeb3'
+import useWeb3, { Web3Provider } from './hooks/useWeb3'
 
 function App() {
   return (
     <Web3Provider>
       <KenoProvider>
-        <InputPanel />
-        <ResultDisplay />
-        <Web3Connect />
+        <Wrapper />
       </KenoProvider>
     </Web3Provider>
   );
 }
 
+function Wrapper() {
+  const [
+    { currentRoundResult, contract, totalLiabilities, rule, currentBlock },
+    actions
+  ] = useWeb3()
+  return (
+    <>
+      <Web3Connect />
+      <ResultDisplay
+        currentRoundResult={currentRoundResult}
+        rule={rule}
+        currentBlock={currentBlock}
+        totalLiabilities={totalLiabilities}
+        contract={contract}
+      />
+      <p>==============================</p>
+      <Game
+        contract={contract}
+        currentBlock={currentBlock}
+        readyToTransact={actions.ready} />
+    </>
+  )
+}
 export default App;

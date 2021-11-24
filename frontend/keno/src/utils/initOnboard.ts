@@ -1,10 +1,10 @@
 import Onboard from 'bnc-onboard'
 import { Subscriptions } from 'bnc-onboard/dist/src/interfaces'
 
-const networkId = 4
-const infuraId = 'de6e66cb509c43e0897d062c93f15d9e'
+const networkId = 31337
+// const infuraId = 'de6e66cb509c43e0897d062c93f15d9e'
 // const rpcUrl = `https://mainnet.infura.io/v3/${infuraId}`
-const rpcUrl = `http://localhost:19932`
+// const rpcUrl = `http://localhost:19932`
 
 export function initOnboard(subscriptions: Subscriptions) {
     return Onboard({
@@ -17,28 +17,28 @@ export function initOnboard(subscriptions: Subscriptions) {
         walletSelect: {
             wallets: [
                 { walletName: 'metamask', preferred: true },
-                {
-                    walletName: 'walletConnect',
-                    preferred: true,
-                    infuraKey: infuraId,
-                },
-                {
-                    walletName: 'trezor',
-                    appUrl: 'https://memenumbers.com',
-                    email: '',
-                    rpcUrl,
-                },
-                {
-                    walletName: 'ledger',
-                    rpcUrl,
-                },
-                { walletName: 'coinbase' },
-                { walletName: 'status' },
-                { walletName: 'walletLink', rpcUrl },
-                {
-                    walletName: 'portis',
-                    apiKey: 'b2b7586f-2b1e-4c30-a7fb-c2d1533b153b',
-                },
+                // {
+                //     walletName: 'walletConnect',
+                //     preferred: true,
+                //     infuraKey: infuraId,
+                // },
+                // {
+                //     walletName: 'trezor',
+                //     appUrl: 'https://memenumbers.com',
+                //     email: '',
+                //     rpcUrl,
+                // },
+                // {
+                //     walletName: 'ledger',
+                //     rpcUrl,
+                // },
+                // { walletName: 'coinbase' },
+                // { walletName: 'status' },
+                // { walletName: 'walletLink', rpcUrl },
+                // {
+                //     walletName: 'portis',
+                //     apiKey: 'b2b7586f-2b1e-4c30-a7fb-c2d1533b153b',
+                // },
                 // { walletName: 'cobovault', appName: 'React Demo', rpcUrl },
                 // { walletName: 'keystone', appName: 'React Demo', rpcUrl },
                 // { walletName: 'keepkey', rpcUrl },

@@ -1,32 +1,37 @@
 import { useEffect, useState } from 'react'
 import { useKeno } from '../hooks/useKeno'
-import useWeb3 from '../hooks/useWeb3'
-import { DrawResult } from '../utils/contract'
-import { SelectEvent } from '../keno/kenoContext'
-import { BigNumber } from 'ethers'
+import { DrawResult, GameRule } from '../utils/contract'
+import { BigNumber, utils, ethers } from 'ethers'
 
-function History() {
+interface DisplayProps {
+    currentRoundResult: DrawResult | undefined,
+    rule: GameRule | undefined,
+    currentBlock: number | undefined,
+    totalLiabilities: BigNumber | undefined,
+    contract?: ethers.Contract
+}
+
+const Display: React.FC<DisplayProps> = ({
+    currentRoundResult,
+    rule,
+    currentBlock,
+    totalLiabilities,
+    contract
+}) => {
     const [round, setRound] = useState('0')
     const [roundResult, setRoundResult] = useState<DrawResult>()
     const [sending, setSending] = useState(false)
     const [countdown, setCountdown] = useState('')
     const { controller, selecting } = useKeno()
-    const [
-        { currentRoundResult, contract, defaultContract, getResult, rule, currentBlock },
-        actions,
-    ] = useWeb3()
 
     function drawResult(result: DrawResult | undefined) {
         if (!result || !result.round || !result.draw || !rule)
             return
         let { round, draw } = result;
         let gameNumDisplay: string[];
-        if (round) {
-            gameNumDisplay = ['round ' + round.toString(),
-            draw.length !== 0 ? 'block ' + round.add(1).mul(rule.drawRate).toString() : '-']
-        } else {
-            gameNumDisplay = ['', '']
-        }
+        gameNumDisplay = ['round ' + round!.toString(),
+        draw.length !== 0 ? 'block ' + round!.add(1).mul(rule.drawRate).toString() : '-',
+        (currentBlock && currentBlock !== -1) ? 'block ' + currentBlock!.toString() : '-']
         controller.setGameNumber(gameNumDisplay)
         let number = []
         for (let i = 0; i < draw.length; i++) {
@@ -43,13 +48,20 @@ function History() {
             setRoundResult(currentRoundResult)
             drawResult(currentRoundResult)
         }
-    }, [currentRoundResult, selecting])
+    }, [currentRoundResult, selecting, rule, currentBlock])
 
-    // useEffect(() => {
-    //     if (!selecting) {
-    //         drawResult(roundResult)
-    //     }
-    // }, [selecting])
+    async function getResult(round: BigNumber) {
+        if (!contract) return []
+        let eventFilter = contract.filters.Result(round)
+        let result = await contract.queryFilter(eventFilter)
+        if (result.length !== 0) {
+            if (result[0].args && result[0].args.length !== 0) {
+                return result[0].args[1]
+            }
+        } else {
+            return []
+        }
+    }
 
     async function handleSubmit(evt: any) {
         evt.preventDefault()
@@ -95,9 +107,9 @@ function History() {
         }
     }
 
-    function currentRound() {
-        if (roundResult) {
-            setRound(roundResult.round.toString())
+    async function currentRound() {
+        if (currentBlock && currentBlock > -1) {
+            setRound((~~(currentBlock / 5)).toString())
         }
     }
 
@@ -105,15 +117,13 @@ function History() {
         if (!currentBlock || !rule || !rule.drawRate)
             return
         let drawRate = rule.drawRate.toNumber()
-        setCountdown('block: ' + (drawRate - currentBlock % drawRate).toString())
+        setCountdown((drawRate - currentBlock % drawRate).toString())
     }, [currentBlock])
-    // function blockCountdown(drawRate: BigNumber | undefined) {
-
-    // }
 
     return (
         <>
-            <p>block: {countdown}</p>
+            <p>block to next round: {countdown}</p>
+            <p>total liabilities: {totalLiabilities ? utils.formatEther(totalLiabilities) : ''}</p>
             <form onSubmit={handleSubmit}>
                 <button disabled={!controller.ready || selecting || sending} onClick={currentRound}>current</button>
                 <button disabled={!controller.ready || selecting || sending} onClick={minusRound}>{"<<"}</button>
@@ -125,4 +135,4 @@ function History() {
     )
 }
 
-export default History;
+export default Display;
