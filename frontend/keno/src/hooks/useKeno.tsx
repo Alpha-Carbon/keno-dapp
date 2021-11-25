@@ -1,4 +1,5 @@
-import { KenoContext, KenoContextType } from '../keno/kenoContext'
+import { KenoContextType } from '../keno/kenoType'
+import { KenoContext } from '../keno/kenoProvider'
 import { useContext } from 'react';
 
 export function useKeno(): KenoContextType {

@@ -74,6 +74,7 @@ function OBJ_keno(containerOfAll, selectLimit) {
         ball.selected.anchor.set(0.5);
         ball.default
             .on('mousedown', () => {
+                if (!selectMode) return
                 if (addNum(num)) {
                     this.ballSelected()
                 } else {

@@ -4,16 +4,14 @@ import React, {
     useState,
     Dispatch,
     SetStateAction,
-    useCallback,
 } from 'react'
 import { ethers, providers, BigNumber } from 'ethers'
 import { API, Wallet, Ens } from 'bnc-onboard/dist/src/interfaces'
 
-import { getGameRule, DrawResult, GameRule } from '../utils/contract'
+import { getGameRule, DrawResult, GameRule, getResult, getContractState, ContractState, Round } from '../utils/contract'
 import { initOnboard } from '../utils/initOnboard'
 import Abi from '../abi/KenoAbi.json'
 import Config, { AMINO } from '../config'
-import { Address } from 'cluster'
 
 interface ContextData {
     address?: string
@@ -22,12 +20,13 @@ interface ContextData {
     balance?: string
     wallet?: Wallet
     onboard?: API
-    rule?: GameRule,
-    currentBlock?: number,
+    rule?: GameRule
+    currentBlock?: number
+    currentRound?: Round
     currentRoundResult?: DrawResult
     contract?: ethers.Contract
     defaultContract: ethers.Contract
-    totalLiabilities?: BigNumber,
+    totalLiabilities?: BigNumber
 }
 
 interface ContextActions {
@@ -66,6 +65,7 @@ export const Web3Provider: React.FC<{}> = ({ children }) => {
 
 
     const [rule, setRule] = useState<GameRule>()
+    const [currentRound, setCurrentRound] = useState<Round>()
     const [currentRoundResult, setCurrentRoundResult] = useState<DrawResult>()
     const [totalLiabilities, setTotalLiabilities] = useState<BigNumber>()
 
@@ -100,8 +100,7 @@ export const Web3Provider: React.FC<{}> = ({ children }) => {
         })
         setOnboard(onboard)
 
-            // Get contract data and setup listeners on default contract
-            ; (async () => { setRule(await getGameRule(defaultContract)) })()
+        // Get contract data and setup listeners on default contract
         subscribeContractEvents(defaultProvider, defaultContract, setCurrentRoundResult, true)
         subscribeBlock(defaultProvider, defaultContract)
 
@@ -134,8 +133,7 @@ export const Web3Provider: React.FC<{}> = ({ children }) => {
                 defaultProvider
             )
 
-                // Get contract data and setup listeners on default contract
-                ; (async () => { setRule(await getGameRule(defaultContract)) })()
+            // Get contract data and setup listeners on default contract
             subscribeContractEvents(defaultProvider, defaultContract, setCurrentRoundResult, false)
             subscribeBlock(defaultProvider, defaultContract)
 
@@ -177,19 +175,34 @@ export const Web3Provider: React.FC<{}> = ({ children }) => {
         setCurrentRoundResult: Dispatch<SetStateAction<DrawResult | undefined>>,
         init: boolean
     ) {
-        let initRound = BigNumber.from(~~(provider.blockNumber / 5))
-        console.log("blockNumber", provider.blockNumber)
-        console.log("try get round:", initRound)
-        let initDraw = await getResult(initRound)
+        let gameRule = await getGameRule(defaultContract)
+        setRule(gameRule)
+        let drawRate = gameRule.drawRate.toNumber();
+        let initRound = BigNumber.from(~~(provider.blockNumber / drawRate))
+        let state = await getContractState(defaultContract, initRound)
+        let initDraw = state.draw
+        setCurrentRound(state.round)
+
         contract.on('Result', async (currentRound: BigNumber, currentDraw: BigNumber[]) => {
             if (!currentRoundResult || currentRoundResult.round < currentRound) {
                 setCurrentRoundResult({ round: currentRound, draw: currentDraw })
+                setCurrentRound(undefined)
             }
         })
-        // contract.on('NewEntry',async() => {
-
-        // } )
-        contract.on('EntryWins', async (currentRound: BigNumber, player: Address, spots: BigNumber[], hits: boolean[], payout: BigNumber) => {
+        contract.on('NewEntry', async (round: BigNumber, player: String) => {
+            if (~~(provider.blockNumber / drawRate) === round.toNumber() - 1) {
+                //#TODO use real getter here
+                //#HACK the getter need to be implemented in contract, it was `getRoundObj`
+                let result = await contract.getRoundObj(round.toNumber())
+                if (result && result.length > 1) {
+                    setCurrentRound({
+                        entries: result[0],
+                        resolved: result[1]
+                    })
+                }
+            }
+        })
+        contract.on('EntryWins', async (currentRound: BigNumber, player: String, spots: BigNumber[], hits: boolean[], payout: BigNumber) => {
             console.log('winner', currentRound, player, spots, hits, payout)
         })
 
@@ -210,33 +223,15 @@ export const Web3Provider: React.FC<{}> = ({ children }) => {
             if (!currentBlock || currentBlock < block) {
                 setCurrentBlock(block)
             }
-            if (!currentRoundResult) {
-                let round = BigNumber.from(~~(block / 5))
-                let draw = await getResult(round)
+            if (!currentRoundResult && rule) {
+                let round = BigNumber.from(~~(block / rule.drawRate.toNumber()))
+                let draw = await getResult(contract, round)
                 if (draw.length !== 0)
                     setCurrentRoundResult({ round: round, draw: draw })
             }
             setTotalLiabilities(await contract.totalLiabilities())
         })
     }
-
-
-    const getResult = useCallback(async (round: BigNumber) => {
-        try {
-            let eventFilter = defaultContract.filters.Result(round)
-            let result = await defaultContract.queryFilter(eventFilter)
-            if (result.length !== 0) {
-                if (result[0].args && result[0].args.length !== 0) {
-                    return result[0].args[1]
-                }
-            } else {
-                return []
-            }
-        } catch (e) {
-            console.log(e)
-        }
-    }, [defaultContract])
-
 
     const disconnectWallet = () => {
         if (onboard) {
@@ -263,6 +258,7 @@ export const Web3Provider: React.FC<{}> = ({ children }) => {
                     onboard,
                     rule,
                     currentBlock,
+                    currentRound,
                     currentRoundResult,
                     contract: activeContract,
                     defaultContract,

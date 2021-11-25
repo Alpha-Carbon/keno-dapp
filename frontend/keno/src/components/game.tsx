@@ -1,22 +1,27 @@
 import { useState } from 'react';
-import { useKeno } from '../hooks/useKeno'
 import { Result } from '../types'
-import { BigNumber, ethers, utils } from 'ethers'
+import { BigNumber, ethers } from 'ethers'
+import { GameRule } from '../utils/contract'
+import { KenoController } from '../keno/kenoType'
 
 interface GameProps {
+    rule: GameRule | undefined,
     account?: string | null
     contract?: ethers.Contract
     currentBlock?: number,
     readyToTransact: () => Promise<boolean>
+    //
+    keno: KenoController
 }
 
 const Game: React.FC<GameProps> = ({
+    rule,
     account,
     contract,
     currentBlock,
-    readyToTransact
+    readyToTransact,
+    keno,
 }) => {
-    const { controller } = useKeno();
     const [btnText, setBtnText] = useState('select')
     const [selectedNumbers, setSelectedNumbers] = useState<number[]>([]);
     const [selectedDisplay, setSelectedDisplay] = useState('');
@@ -25,20 +30,20 @@ const Game: React.FC<GameProps> = ({
 
     function selectButton() {
         // console.log('ready?', ready)
-        if (!controller.ready) return
-        if (controller.reverseSelect()) {
-            controller.setSelectMode()
+        if (!keno.ready) return
+        if (keno.reverseSelect()) {
+            keno.setSelectMode()
             setBtnText('done')
             setSending(true)
         } else {
-            controller.reset({
+            keno.reset({
                 number: [],
                 info: ['', '', '', '', '']
             });
 
             setBtnText('select')
             setSending(false)
-            let selected = controller.getSelected()
+            let selected = keno.getSelected()
             setSelectedNumbers(selected)
             setSelectedDisplay(selected.toString())
         }
@@ -46,14 +51,14 @@ const Game: React.FC<GameProps> = ({
 
     const sendRequest = async () => {
         let ready = await readyToTransact()
-        if (!ready || !contract || selectedNumbers.length === 0 || !currentBlock) return
+        if (!ready || !contract || selectedNumbers.length === 0 || !currentBlock || !rule) return
 
         setSending(true)
         try {
             let selectedNum = selectedNumbers.map(v => BigNumber.from(v))
 
-            console.log('spots', selectedNum.length)
-            let res = await contract!.play(((~~(currentBlock / 5) + 1) * 5), selectedNum, {
+            let drawRate = rule!.drawRate.toNumber()
+            let res = await contract!.play(((~~(currentBlock / drawRate) + 1) * drawRate), selectedNum, {
                 value: await contract!.MINIMUM_PLAY(),
             })
 
@@ -70,36 +75,11 @@ const Game: React.FC<GameProps> = ({
         }
         setSending(false)
     }
-    // const sendWithdraw = async () => {
-    //     let ready = await readyToTransact()
-    //     if (!ready || !contract || !account) return
-
-    //     setSending(true)
-    //     try {
-    //         let selectedNum = selectedNumbers.map(v => BigNumber.from(v))
-
-    //         let res = await contract!.withdraw(account)
-
-    //         console.log('play result:', res)
-    //         setResult({
-    //             message: `Play Transaction Sent, Tx Hash: ${res.hash}`,
-    //         })
-    //     } catch (e: any) {
-    //         console.log(`tx response: ${e.message}`)
-    //         setResult({
-    //             message: `Play Transaction Error: ${e.message}`,
-    //             err: e as Error,
-    //         })
-    //     }
-    //     setSending(false)
-    // }
-
 
     return (
         <>
-            <button onClick={selectButton} disabled={!controller.ready}>{btnText}</button>
-            <button onClick={sendRequest} disabled={!controller.ready || sending}>send</button>
-            {/* <button onClick={sendWithdraw} disabled={!controller.ready || sending}>withdraw</button> */}
+            <button onClick={selectButton} disabled={!keno.ready}>{btnText}</button>
+            <button onClick={sendRequest} disabled={!keno.ready || sending}>send</button>
             <p>selected: {selectedDisplay}</p>
             <p>result: {result?.message}</p>
         </>

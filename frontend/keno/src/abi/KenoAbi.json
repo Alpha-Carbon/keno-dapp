@@ -235,6 +235,59 @@
         "type": "function"
     },
     {
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "roundNumber",
+                "type": "uint256"
+            }
+        ],
+        "name": "getRoundObj",
+        "outputs": [
+            {
+                "components": [
+                    {
+                        "components": [
+                            {
+                                "internalType": "address payable",
+                                "name": "player",
+                                "type": "address"
+                            },
+                            {
+                                "internalType": "uint256[]",
+                                "name": "picks",
+                                "type": "uint256[]"
+                            },
+                            {
+                                "internalType": "uint256",
+                                "name": "value",
+                                "type": "uint256"
+                            },
+                            {
+                                "internalType": "uint256",
+                                "name": "maxPayout",
+                                "type": "uint256"
+                            }
+                        ],
+                        "internalType": "struct Entry[]",
+                        "name": "entries",
+                        "type": "tuple[]"
+                    },
+                    {
+                        "internalType": "bool",
+                        "name": "resolved",
+                        "type": "bool"
+                    }
+                ],
+                "internalType": "struct Round",
+                "name": "",
+                "type": "tuple"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
         "inputs": [],
         "name": "owner",
         "outputs": [
