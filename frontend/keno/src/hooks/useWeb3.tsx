@@ -5,7 +5,7 @@ import React, {
     Dispatch,
     SetStateAction,
 } from 'react'
-import { ethers, providers, BigNumber } from 'ethers'
+import { ethers, providers, BigNumber, utils } from 'ethers'
 import { API, Wallet, Ens } from 'bnc-onboard/dist/src/interfaces'
 
 import { getGameRule, DrawResult, GameRule, getResult, getRound, getContractState, blockToRound, RoundInfo } from '../utils/contract'
@@ -203,6 +203,10 @@ export const Web3Provider: React.FC<{}> = ({ children }) => {
         // })
         contract.on('EntryWins', async (round: BigNumber, player: String, spots: BigNumber[], hits: boolean[], payout: BigNumber) => {
             console.log('winner', round, player, spots, hits, payout)
+            if (player.toLowerCase() === address) {
+                let reward = utils.formatEther(payout)
+                console.log('you won ' + reward + ' ether')
+            }
         })
 
         if (state)
