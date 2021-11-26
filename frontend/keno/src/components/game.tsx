@@ -61,7 +61,6 @@ const Game: React.FC<GameProps> = ({
                 value: await contract!.MINIMUM_PLAY(),
             })
 
-            console.log('play result:', res)
             setResult({
                 message: `Play Transaction Sent, Tx Hash: ${res.hash}`,
             })

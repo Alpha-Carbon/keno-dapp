@@ -7,7 +7,9 @@ interface KenoProviderProps {
     children?: React.ReactNode;
 }
 
-interface KenoGame { setSelectLimit: (arg0: BigNumber) => void; setTabChangingCallBack: (arg0: (time: number) => void) => void; setFinishCallBack: (arg0: () => void) => void; setGameNumber: (arg0: string[]) => void; reset: (arg0: PreviousResult) => void; setSelectCallback: (arg0: (e: SelectEvent) => void) => void; reverseSelect: any; setSelectMode: any; setTime: any; setTimeWithTimestamp: any; getSelected: any; };
+interface KenoGame {
+    stop: (previousResult: PreviousResult) => boolean; setSelectLimit: (arg0: BigNumber) => void; setTabChangingCallBack: (arg0: (time: number) => void) => void; setFinishCallBack: (arg0: () => void) => void; setGameNumber: (arg0: string[]) => void; reset: (arg0: PreviousResult) => void; setSelectCallback: (arg0: (e: SelectEvent) => void) => void; reverseSelect: any; setSelectMode: any; setTime: any; setTimeWithTimestamp: any; getSelected: any;
+};
 
 const container = (() => {
     let newContainer = document.createElement('div')
@@ -75,6 +77,7 @@ const KenoProvider = ({ children }: KenoProviderProps): React.ReactElement<KenoP
             setController({
                 ready: true,
                 reset: game.reset,
+                stop: game.stop,
                 setGameNumber: game.setGameNumber,
                 reverseSelect,
                 setSelectMode: game.setSelectMode,

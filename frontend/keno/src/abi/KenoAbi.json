@@ -242,7 +242,7 @@
                 "type": "uint256"
             }
         ],
-        "name": "getRoundObj",
+        "name": "getRound",
         "outputs": [
             {
                 "components": [

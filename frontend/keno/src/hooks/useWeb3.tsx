@@ -192,8 +192,8 @@ export const Web3Provider: React.FC<{}> = ({ children }) => {
         contract.on('NewEntry', async (round: BigNumber, player: String) => {
             if (provider && currentBlock && blockToRound(currentBlock, drawRate) === round.toNumber() - 1) {
                 //#TODO use real getter here
-                //#HACK the getter need to be implemented in contract, it was `getRoundObj`
-                let result = await contract.getRoundObj(round.toNumber())
+                //#HACK the getter need to be implemented in contract, it was `getRound`
+                let result = await contract.getRound(round.toNumber())
                 if (result && result.length > 1) {
                     setCurrentRound({
                         entries: result[0],

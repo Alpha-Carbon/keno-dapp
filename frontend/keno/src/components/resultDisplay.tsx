@@ -44,7 +44,7 @@ const Display: React.FC<DisplayProps> = ({
     //     }
     // }, [legalRange])
 
-    function drawResult(result: DrawResult | undefined) {
+    function renderGameNumber(result: DrawResult | undefined) {
         if (!result || !result.round || !result.draw || !rule)
             return
         let renderRound = result.round
@@ -53,31 +53,72 @@ const Display: React.FC<DisplayProps> = ({
         renderDraw.length !== 0 ? 'block ' + renderRound!.add(1).mul(rule.drawRate).toString() : '-',
         (currentBlock && currentBlock !== -1) ? 'block ' + currentBlock!.toString() : '-']
         keno.setGameNumber(gameNumDisplay)
-        let number = []
+    }
+
+    function renderResult(result: DrawResult | undefined, animation: boolean) {
+        if (!result || !result.round || !result.draw || !rule)
+            return
+        console.log("renderResult, animation:", animation)
+        let number: number[] = []
+        let renderDraw = result.draw
         for (let i = 0; i < renderDraw.length; i++) {
             number.push(renderDraw[i].toNumber() - 1)
         }
-        keno.reset({
+        let renderResult = {
             number,
             info: ['', '', '', '', '']
-        })
+        }
+        if (animation) {
+            if (!keno.setTime(0))
+                console.error('set time failed')
+            setTimeout(() => {
+                if (!keno.stop(renderResult))
+                    console.error('stop failed')
+            }, 1000)
+        } else {
+            keno.reset(renderResult)
+        }
     }
 
     useEffect(() => {
-        setRoundResult(currentRoundResult)
-        if (!selecting) {
-            drawResult(currentRoundResult)
-        }
         if (rule && currentBlock) {
             let currentRound = blockToRound(currentBlock, rule.drawRate.toNumber())
             let stratRound = rule.startRound.toNumber()
+            renderGameNumber(roundResult)
             if (!legalRange
                 || (legalRange[0] !== stratRound || legalRange[1] !== currentRound)
             ) {
                 setLegalRange([stratRound, currentRound])
             }
         }
-    }, [currentRoundResult, selecting, rule, currentBlock])
+    }, [rule, currentBlock])
+
+    useEffect(() => {
+        if (!currentBlock || !rule || !rule.drawRate)
+            return
+        let drawRate = rule.drawRate.toNumber()
+        setCountdown((drawRate - currentBlock % drawRate).toString())
+        if (round === '') {
+            setRound(blockToRound(currentBlock, rule.drawRate.toNumber()).toString())
+        }
+    }, [currentBlock])
+
+    useEffect(() => {
+        if (!currentRoundResult) return
+        if (!selecting) {
+            renderResult(currentRoundResult, (roundResult !== undefined && !roundResult.round.eq(currentRoundResult.round)))
+            renderGameNumber(currentRoundResult)
+        }
+        setRoundResult(currentRoundResult)
+    }, [currentRoundResult])
+
+    useEffect(() => {
+        if (!selecting) {
+            renderResult(currentRoundResult, false)
+            renderGameNumber(currentRoundResult)
+        }
+    }, [selecting])
+
 
     async function handleSubmit(evt: any) {
         evt.preventDefault()
@@ -95,10 +136,10 @@ const Display: React.FC<DisplayProps> = ({
             setSending(true)
             let currentRound = BigNumber.from(requestRound)
             let draw = await getResult(contract, currentRound)
-            drawResult({
+            renderResult({
                 round: currentRound,
                 draw,
-            })
+            }, false)
             setSending(false)
         }
     }
@@ -138,16 +179,6 @@ const Display: React.FC<DisplayProps> = ({
             setRound(blockToRound(currentBlock, rule.drawRate.toNumber()).toString())
         }
     }
-
-    useEffect(() => {
-        if (!currentBlock || !rule || !rule.drawRate)
-            return
-        let drawRate = rule.drawRate.toNumber()
-        setCountdown((drawRate - currentBlock % drawRate).toString())
-        if (round === '') {
-            setRound(blockToRound(currentBlock, rule.drawRate.toNumber()).toString())
-        }
-    }, [currentBlock])
 
     return (
         <>

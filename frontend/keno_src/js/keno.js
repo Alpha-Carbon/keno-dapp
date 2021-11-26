@@ -238,7 +238,7 @@ function OBJ_keno(containerOfAll, selectLimit) {
     }
 
     let animation;
-    let between = gameConfig.TIME_BALL_FLYING + 0.2;
+    let between = gameConfig.TIME_BALL_FLYING + 0.05;
     this.stop = (result, backToStateWaitFunction) => {
         let TLStartTime = Date.now();
         animation = new animationList(TLStartTime);

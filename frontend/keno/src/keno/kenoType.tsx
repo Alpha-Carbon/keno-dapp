@@ -6,6 +6,7 @@ export interface PreviousResult {
 export interface KenoController {
     ready: boolean,
     reset: (previousResult: PreviousResult) => void,
+    stop: (previousResult: PreviousResult) => boolean,
     setGameNumber: (val: string[]) => void,
     reverseSelect: () => boolean,//switch selecting
     setSelectMode: () => boolean,//set to select mode
@@ -30,6 +31,7 @@ export const createInitContext = (container: any) => {
         controller: {
             ready: false,
             reset: (previousResult: PreviousResult) => { },
+            stop: (previousResult: PreviousResult) => false,
             setGameNumber: (val: string[]) => { },
             reverseSelect: () => false,//switch selecting
             setSelectMode: () => false,//set to select mode

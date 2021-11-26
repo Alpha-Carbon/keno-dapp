@@ -61,7 +61,7 @@ export async function getContractState(
     // console.log('querying contract...')
     const [draw, roundResult] = await Promise.all([
         getResult(contract, round),
-        contract.getRoundObj(round),
+        contract.getRound(round),
     ])
 
     return {
