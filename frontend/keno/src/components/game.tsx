@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Result } from '../types'
 import { BigNumber, ethers } from 'ethers'
-import { GameRule } from '../utils/contract'
+import { GameRule, blockToRound } from '../utils/contract'
 import { KenoController } from '../keno/kenoType'
 
 interface GameProps {
@@ -29,7 +29,6 @@ const Game: React.FC<GameProps> = ({
     const [result, setResult] = useState<Result>()
 
     function selectButton() {
-        // console.log('ready?', ready)
         if (!keno.ready) return
         if (keno.reverseSelect()) {
             keno.setSelectMode()
@@ -58,7 +57,7 @@ const Game: React.FC<GameProps> = ({
             let selectedNum = selectedNumbers.map(v => BigNumber.from(v))
 
             let drawRate = rule!.drawRate.toNumber()
-            let res = await contract!.play(((~~(currentBlock / drawRate) + 1) * drawRate), selectedNum, {
+            let res = await contract!.play(((blockToRound(currentBlock, drawRate) + 1) * drawRate), selectedNum, {
                 value: await contract!.MINIMUM_PLAY(),
             })
 

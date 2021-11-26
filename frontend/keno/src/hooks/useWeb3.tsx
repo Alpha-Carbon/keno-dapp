@@ -8,7 +8,7 @@ import React, {
 import { ethers, providers, BigNumber } from 'ethers'
 import { API, Wallet, Ens } from 'bnc-onboard/dist/src/interfaces'
 
-import { getGameRule, DrawResult, GameRule, getResult, getContractState, ContractState, Round } from '../utils/contract'
+import { getGameRule, DrawResult, GameRule, getResult, getContractState, blockToRound, Round } from '../utils/contract'
 import { initOnboard } from '../utils/initOnboard'
 import Abi from '../abi/KenoAbi.json'
 import Config, { AMINO } from '../config'
@@ -177,20 +177,20 @@ export const Web3Provider: React.FC<{}> = ({ children }) => {
     ) {
         let gameRule = await getGameRule(defaultContract)
         setRule(gameRule)
-        let drawRate = gameRule.drawRate.toNumber();
-        let initRound = BigNumber.from(~~(provider.blockNumber / drawRate))
+        let drawRate = gameRule.drawRate.toNumber()
+        let blockNumber = await provider.getBlockNumber()
+        let initRound = BigNumber.from(blockToRound(blockNumber, drawRate))
         let state = await getContractState(defaultContract, initRound)
         let initDraw = state.draw
-        setCurrentRound(state.round)
 
-        contract.on('Result', async (currentRound: BigNumber, currentDraw: BigNumber[]) => {
-            if (!currentRoundResult || currentRoundResult.round < currentRound) {
-                setCurrentRoundResult({ round: currentRound, draw: currentDraw })
+        contract.on('Result', async (round: BigNumber, currentDraw: BigNumber[]) => {
+            if (!currentRoundResult || currentRoundResult.round < round) {
+                setCurrentRoundResult({ round, draw: currentDraw })
                 setCurrentRound(undefined)
             }
         })
         contract.on('NewEntry', async (round: BigNumber, player: String) => {
-            if (~~(provider.blockNumber / drawRate) === round.toNumber() - 1) {
+            if (provider && currentBlock && blockToRound(currentBlock, drawRate) === round.toNumber() - 1) {
                 //#TODO use real getter here
                 //#HACK the getter need to be implemented in contract, it was `getRoundObj`
                 let result = await contract.getRoundObj(round.toNumber())
@@ -202,22 +202,25 @@ export const Web3Provider: React.FC<{}> = ({ children }) => {
                 }
             }
         })
-        contract.on('EntryWins', async (currentRound: BigNumber, player: String, spots: BigNumber[], hits: boolean[], payout: BigNumber) => {
-            console.log('winner', currentRound, player, spots, hits, payout)
+        contract.on('EntryWins', async (round: BigNumber, player: String, spots: BigNumber[], hits: boolean[], payout: BigNumber) => {
+            console.log('winner', round, player, spots, hits, payout)
         })
 
-        if (initDraw && initDraw.length !== 0)
+        if (state)
+            setCurrentRound(state.round)
+        if (initRound && initDraw && initDraw.length !== 0)
             setCurrentRoundResult({ round: initRound, draw: initDraw })
-        console.log("subscribeContractEvents end")
         if (init) setInitFinished(true)
+        console.log("subscribeContractEvents end")
     }
 
-    function subscribeBlock(
+    async function subscribeBlock(
         provider: providers.JsonRpcProvider,
         contract: ethers.Contract,
     ) {
-        if (provider.blockNumber) {
-            setCurrentBlock(provider.blockNumber)
+        let blockNumber = await provider.getBlockNumber()
+        if (blockNumber && blockNumber !== -1) {
+            setCurrentBlock(blockNumber)
         }
         provider.on('block', async (block) => {
             if (!currentBlock || currentBlock < block) {
@@ -227,7 +230,7 @@ export const Web3Provider: React.FC<{}> = ({ children }) => {
                 let round = BigNumber.from(~~(block / rule.drawRate.toNumber()))
                 let draw = await getResult(contract, round)
                 if (draw.length !== 0)
-                    setCurrentRoundResult({ round: round, draw: draw })
+                    setCurrentRoundResult({ round, draw: draw })
             }
             setTotalLiabilities(await contract.totalLiabilities())
         })

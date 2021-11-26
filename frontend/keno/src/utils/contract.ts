@@ -4,6 +4,7 @@ export interface GameRule {
     drawRate: BigNumber
     spots: BigNumber
     startBlock: BigNumber
+    startRound: BigNumber
 }
 
 export interface DrawResult {
@@ -34,11 +35,18 @@ export async function getGameRule(
         contract.startBlock(),
     ])
 
-    return {
+    let rule = {
         drawRate,
         spots,
         startBlock,
+        startRound: startBlock.div(drawRate).add(1)
     }
+    console.log('game rule:')
+    console.log('drawRate', rule.drawRate.toNumber())
+    console.log('spots', rule.spots.toNumber())
+    console.log('startBlock', rule.startBlock.toNumber())
+    console.log('startRound', rule.startRound.toNumber())
+    return rule
 }
 
 export interface ContractState {
@@ -74,4 +82,8 @@ export async function getResult(
         }
     }
     return []
+}
+
+export function blockToRound(block: number, drawRate: number): number {
+    return ~~(block / drawRate)
 }
