@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react'
-import { Round } from '../utils/contract'
+import { RoundInfo } from '../utils/contract'
 import { utils } from 'ethers'
 
 interface ListProps {
-    round?: Round,
+    round?: RoundInfo,
 }
 
 const List: React.FC<ListProps> = ({
@@ -11,7 +11,7 @@ const List: React.FC<ListProps> = ({
 }) => {
     const [entries, setEntries] = useState<JSX.Element[]>([])
 
-    function getContent(round?: Round) {
+    function getContent(round?: RoundInfo) {
         if (!round) return []
         let newEntries = []
         for (let i = 0; i < round.entries.length; i++) {

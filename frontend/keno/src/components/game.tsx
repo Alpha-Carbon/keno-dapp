@@ -57,12 +57,13 @@ const Game: React.FC<GameProps> = ({
             let selectedNum = selectedNumbers.map(v => BigNumber.from(v))
 
             let drawRate = rule!.drawRate.toNumber()
-            let res = await contract!.play(((blockToRound(currentBlock, drawRate) + 1) * drawRate), selectedNum, {
+            let forBlock = (blockToRound(currentBlock, drawRate) + 1) * drawRate
+            let res = await contract!.play(forBlock, selectedNum, {
                 value: await contract!.MINIMUM_PLAY(),
             })
 
             setResult({
-                message: `Play Transaction Sent, Tx Hash: ${res.hash}`,
+                message: `Play Transaction Sent, Tx Hash: ${forBlock} | ${res.hash}`,
             })
         } catch (e: any) {
             console.log(`tx response: ${e.message}`)

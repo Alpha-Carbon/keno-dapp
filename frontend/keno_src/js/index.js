@@ -63,7 +63,7 @@ function setup() {
 }
 
 function gameOBJ(target, selectLimit) {
-    console.log("version:", "2021.11.24.1815")
+    // console.log("version:", "2021.11.26.1815")
     let mainContainer = new PIXI.Container();
 
     let countdownTimer;//object

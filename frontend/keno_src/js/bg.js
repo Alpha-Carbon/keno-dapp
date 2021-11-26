@@ -116,7 +116,7 @@ function OBJ_background(containerOfAll) {
     }
 
     this.setGameNumber = (text) => {
-        console.log(text)
+        // console.log(text)
         if (text[0]) {
             currentGameNumber.val = text[0];
             currentGameNumber.string.text = gameConfig.CURRENT_GAMENUMBER_TEXT + text[0];

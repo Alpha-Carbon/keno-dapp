@@ -8,7 +8,7 @@ import React, {
 import { ethers, providers, BigNumber } from 'ethers'
 import { API, Wallet, Ens } from 'bnc-onboard/dist/src/interfaces'
 
-import { getGameRule, DrawResult, GameRule, getResult, getContractState, blockToRound, Round } from '../utils/contract'
+import { getGameRule, DrawResult, GameRule, getResult, getRound, getContractState, blockToRound, RoundInfo } from '../utils/contract'
 import { initOnboard } from '../utils/initOnboard'
 import Abi from '../abi/KenoAbi.json'
 import Config, { AMINO } from '../config'
@@ -22,7 +22,7 @@ interface ContextData {
     onboard?: API
     rule?: GameRule
     currentBlock?: number
-    currentRound?: Round
+    currentRound?: RoundInfo
     currentRoundResult?: DrawResult
     contract?: ethers.Contract
     defaultContract: ethers.Contract
@@ -65,7 +65,7 @@ export const Web3Provider: React.FC<{}> = ({ children }) => {
 
 
     const [rule, setRule] = useState<GameRule>()
-    const [currentRound, setCurrentRound] = useState<Round>()
+    const [currentRound, setCurrentRound] = useState<RoundInfo>()
     const [currentRoundResult, setCurrentRoundResult] = useState<DrawResult>()
     const [totalLiabilities, setTotalLiabilities] = useState<BigNumber>()
 
@@ -189,19 +189,18 @@ export const Web3Provider: React.FC<{}> = ({ children }) => {
                 setCurrentRound(undefined)
             }
         })
-        contract.on('NewEntry', async (round: BigNumber, player: String) => {
-            if (provider && currentBlock && blockToRound(currentBlock, drawRate) === round.toNumber() - 1) {
-                //#TODO use real getter here
-                //#HACK the getter need to be implemented in contract, it was `getRound`
-                let result = await contract.getRound(round.toNumber())
-                if (result && result.length > 1) {
-                    setCurrentRound({
-                        entries: result[0],
-                        resolved: result[1]
-                    })
-                }
-            }
-        })
+        // contract.on('NewEntry', async (round: BigNumber, player: String) => {
+        //     if (provider && currentBlock && blockToRound(currentBlock, drawRate) === round.toNumber() - 1) {
+        //         //#TODO use real getter here
+        //         //#HACK the getter need to be implemented in contract, it was `getRound`
+        //         let result = await getRound(contract, round)
+        //         if (result) {
+        //             setCurrentRound(result)
+        //         }
+        //     } else {
+        //         console.log('NewEntry, but future round')
+        //     }
+        // })
         contract.on('EntryWins', async (round: BigNumber, player: String, spots: BigNumber[], hits: boolean[], payout: BigNumber) => {
             console.log('winner', round, player, spots, hits, payout)
         })
@@ -211,7 +210,7 @@ export const Web3Provider: React.FC<{}> = ({ children }) => {
         if (initRound && initDraw && initDraw.length !== 0)
             setCurrentRoundResult({ round: initRound, draw: initDraw })
         if (init) setInitFinished(true)
-        console.log("subscribeContractEvents end")
+        // console.log("subscribeContractEvents end")
     }
 
     async function subscribeBlock(
@@ -226,13 +225,24 @@ export const Web3Provider: React.FC<{}> = ({ children }) => {
             if (!currentBlock || currentBlock < block) {
                 setCurrentBlock(block)
             }
-            if (!currentRoundResult && rule) {
-                let round = BigNumber.from(~~(block / rule.drawRate.toNumber()))
-                let draw = await getResult(contract, round)
-                if (draw.length !== 0)
-                    setCurrentRoundResult({ round, draw: draw })
+            if (rule) {
+                const round = blockToRound(block, rule.drawRate.toNumber())
+                const BRound = BigNumber.from(round)
+                if (!currentRoundResult) {
+                    let draw = await getResult(contract, BRound)
+                    if (draw.length !== 0)
+                        setCurrentRoundResult({ round: BRound, draw: draw })
+
+
+                }
+
+                let result = await getRound(contract, BRound.add(1))
+                if (result && (!currentRound || !BRound.eq(currentRound!.round) || result.entries.length !== currentRound!.entries.length)) {
+                    setCurrentRound(result)
+                }
             }
             setTotalLiabilities(await contract.totalLiabilities())
+
         })
     }
 

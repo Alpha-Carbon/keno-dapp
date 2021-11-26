@@ -58,7 +58,6 @@ const Display: React.FC<DisplayProps> = ({
     function renderResult(result: DrawResult | undefined, animation: boolean) {
         if (!result || !result.round || !result.draw || !rule)
             return
-        console.log("renderResult, animation:", animation)
         let number: number[] = []
         let renderDraw = result.draw
         for (let i = 0; i < renderDraw.length; i++) {
