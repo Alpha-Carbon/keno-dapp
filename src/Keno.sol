@@ -30,6 +30,7 @@ struct Round {
 contract Keno is Context, Ownable, RandomConsumerBase {
     event Result(uint256 indexed round, uint256[20] draw);
     event NewEntry(uint256 indexed round, address indexed player);
+    //#TODO we can store index of Round.entries instead of whole spots data
     event EntryWins(
         uint256 indexed round,
         address player,
