@@ -8,7 +8,7 @@ import React, {
 import { ethers, providers, BigNumber, utils } from 'ethers'
 import { API, Wallet, Ens } from 'bnc-onboard/dist/src/interfaces'
 
-import { getGameRule, DrawResult, GameRule, getResult, getRound, getContractState, blockToRound, RoundInfo } from '../utils/contract'
+import { getGameRule, DrawResult, GameRule, getResult, getRound, getContractState, blockToRound, RoundInfo, RoundWinners, getWinners } from '../utils/contract'
 import { initOnboard } from '../utils/initOnboard'
 import Abi from '../abi/KenoAbi.json'
 import Config, { AMINO } from '../config'
@@ -27,6 +27,7 @@ interface ContextData {
     contract?: ethers.Contract
     defaultContract: ethers.Contract
     totalLiabilities?: BigNumber
+    winners?: RoundWinners
 }
 
 interface ContextActions {
@@ -68,6 +69,7 @@ export const Web3Provider: React.FC<{}> = ({ children }) => {
     const [currentRound, setCurrentRound] = useState<RoundInfo>()
     const [currentRoundResult, setCurrentRoundResult] = useState<DrawResult>()
     const [totalLiabilities, setTotalLiabilities] = useState<BigNumber>()
+    const [winners, setWinners] = useState<RoundWinners>()
 
     //callback anchors
     // const contractStateRef = useRef<ContractState>()
@@ -187,6 +189,10 @@ export const Web3Provider: React.FC<{}> = ({ children }) => {
             if (!currentRoundResult || currentRoundResult.round < round) {
                 setCurrentRoundResult({ round, draw: currentDraw })
                 setCurrentRound(undefined)
+                let roundWinners = await getWinners(defaultContract, round)
+                if (roundWinners) {
+                    setWinners(roundWinners)
+                }
             }
         })
         // contract.on('NewEntry', async (round: BigNumber, player: String) => {
@@ -211,8 +217,17 @@ export const Web3Provider: React.FC<{}> = ({ children }) => {
 
         if (state)
             setCurrentRound(state.round)
-        if (initRound && initDraw && initDraw.length !== 0)
-            setCurrentRoundResult({ round: initRound, draw: initDraw })
+        if (initRound) {
+            if (initRound.gte(gameRule.startRound)) {
+                let roundWinners = await getWinners(defaultContract, initRound)
+                if (roundWinners) {
+                    setWinners(roundWinners)
+                }
+            }
+            if (initDraw && initDraw.length !== 0) {
+                setCurrentRoundResult({ round: initRound, draw: initDraw })
+            }
+        }
         if (init) setInitFinished(true)
         // console.log("subscribeContractEvents end")
     }
@@ -246,8 +261,8 @@ export const Web3Provider: React.FC<{}> = ({ children }) => {
                 }
             }
             setTotalLiabilities(await contract.totalLiabilities())
-
         })
+        setTotalLiabilities(await contract.totalLiabilities())
     }
 
     const disconnectWallet = () => {
@@ -280,6 +295,7 @@ export const Web3Provider: React.FC<{}> = ({ children }) => {
                     contract: activeContract,
                     defaultContract,
                     totalLiabilities,
+                    winners,
                 },
                 { ready: readyToTransact, disconnect: disconnectWallet },
             ]}

@@ -6,7 +6,8 @@ import ResultDisplay from './components/resultDisplay';
 import Web3Connect from './components/Web3Connect'
 import useWeb3, { Web3Provider } from './hooks/useWeb3'
 import { useKeno } from './hooks/useKeno'
-import List from './components/list';
+import CurrentRoundPlayer from './components/currentRoundPlayer';
+import RoundWinner from './components/roundWinner';
 
 function App() {
   return (
@@ -36,7 +37,7 @@ const KenoContainer: React.FC<KenoContainerProps> = ({ container }) => {
 
 function Wrapper() {
   const [
-    { currentRoundResult, contract, totalLiabilities, rule, currentBlock, currentRound },
+    { currentRoundResult, contract, totalLiabilities, rule, currentBlock, currentRound, winners },
     actions
   ] = useWeb3()
   const { controller, selecting, container } = useKeno()
@@ -61,7 +62,8 @@ function Wrapper() {
         readyToTransact={actions.ready}
         keno={controller}
       />
-      <List round={currentRound} />
+      <CurrentRoundPlayer round={currentRound} />
+      <RoundWinner roundWinner={winners} />
     </>
   )
 }

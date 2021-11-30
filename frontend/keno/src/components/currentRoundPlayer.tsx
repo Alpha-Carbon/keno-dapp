@@ -2,11 +2,11 @@ import { useEffect, useState } from 'react'
 import { RoundInfo } from '../utils/contract'
 import { utils } from 'ethers'
 
-interface ListProps {
+interface CurrentRoundPlayerProps {
     round?: RoundInfo,
 }
 
-const List: React.FC<ListProps> = ({
+const CurrentRoundPlayer: React.FC<CurrentRoundPlayerProps> = ({
     round,
 }) => {
     const [entries, setEntries] = useState<JSX.Element[]>([])
@@ -35,4 +35,4 @@ const List: React.FC<ListProps> = ({
     )
 }
 
-export default List;
+export default CurrentRoundPlayer;

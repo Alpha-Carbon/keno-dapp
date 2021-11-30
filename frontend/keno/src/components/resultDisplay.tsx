@@ -69,10 +69,10 @@ const Display: React.FC<DisplayProps> = ({
         }
         if (animation) {
             if (!keno.setTime(0))
-                console.error('set time failed')
+                console.log('set time failed')
             setTimeout(() => {
                 if (!keno.stop(renderResult))
-                    console.error('stop failed')
+                    console.log('stop failed')
             }, 1000)
         } else {
             keno.reset(renderResult)
@@ -100,7 +100,7 @@ const Display: React.FC<DisplayProps> = ({
         if (round === '') {
             setRound(blockToRound(currentBlock, rule.drawRate.toNumber()).toString())
         }
-    }, [currentBlock])
+    }, [currentBlock, rule])
 
     useEffect(() => {
         if (!currentRoundResult) return

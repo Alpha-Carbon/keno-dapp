@@ -14,16 +14,28 @@ export interface DrawResult {
 
 
 export interface Entry {
-    player: string,
-    picks: BigNumber[],
-    value: BigNumber,
-    maxPayout: BigNumber,
+    player: string
+    picks: BigNumber[]
+    value: BigNumber
+    maxPayout: BigNumber
 }
 
 export interface RoundInfo {
     entries: Entry[]
     resolved: boolean
     round: BigNumber
+}
+
+export interface Winner {
+    player: String
+    spots: number[]
+    hits: boolean[]
+    payout: BigNumber
+}
+
+export interface RoundWinners {
+    round: BigNumber
+    winners: Winner[]
 }
 
 export async function getGameRule(
@@ -90,7 +102,6 @@ export async function getRound(
     }
 }
 
-
 export async function getResult(
     contract: ethers.Contract | undefined,
     round: BigNumber
@@ -104,6 +115,31 @@ export async function getResult(
         }
     }
     return []
+}
+
+export async function getWinners(
+    contract: ethers.Contract | undefined,
+    round: BigNumber
+): Promise<RoundWinners | undefined> {
+    if (!contract) return undefined
+    const eventFilter = contract.filters.EntryWins(round)
+    const winnersEvt = await contract.queryFilter(eventFilter)
+    let winners: Winner[] = []
+    if (winnersEvt.length !== 0) {
+        winners = winnersEvt.map(v => {
+            let data = v.args!;
+            return {
+                player: data.player,
+                spots: data.spots.map((v: BigNumber) => v.toNumber()),
+                hits: data.hits,
+                payout: data.payout,
+            }
+        })
+    }
+    return {
+        round,
+        winners
+    }
 }
 
 export function blockToRound(block: number, drawRate: number): number {
