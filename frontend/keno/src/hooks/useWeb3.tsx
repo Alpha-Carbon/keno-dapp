@@ -12,6 +12,7 @@ import { getGameRule, DrawResult, GameRule, getResult, getRound, getContractStat
 import { initOnboard } from '../utils/initOnboard'
 import Abi from '../abi/KenoAbi.json'
 import Config, { AMINO } from '../config'
+import { ToastContainer, toast } from 'react-toastify';
 
 interface ContextData {
     address?: string
@@ -212,6 +213,7 @@ export const Web3Provider: React.FC<{}> = ({ children }) => {
             if (player.toLowerCase() === address) {
                 let reward = utils.formatEther(payout)
                 console.log('you won ' + reward + ' ether')
+                toast('You won!')
             }
         })
 

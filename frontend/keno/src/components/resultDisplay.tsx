@@ -2,6 +2,9 @@ import { useEffect, useState } from 'react'
 import { DrawResult, GameRule, getResult, blockToRound } from '../utils/contract'
 import { BigNumber, utils, ethers } from 'ethers'
 import { KenoController } from '../keno/kenoType'
+import TextField from '@mui/material/TextField'
+import styled from 'styled-components'
+import Button from '@mui/material/Button'
 
 interface DisplayProps {
     currentRoundResult: DrawResult | undefined,
@@ -180,18 +183,78 @@ const Display: React.FC<DisplayProps> = ({
     }
 
     return (
-        <>
-            <p>block to next round: {countdown}</p>
-            <p>total liabilities: {totalLiabilities ? utils.formatEther(totalLiabilities) : ''}</p>
-            <form onSubmit={handleSubmit}>
-                <button disabled={!keno.ready || selecting || sending} onClick={currentRound}>current</button>
-                <button disabled={!keno.ready || selecting || sending} onClick={minusRound}>{"<<"}</button>
-                <input disabled={!keno.ready || selecting || sending} type="text" value={round} onChange={handleNumberChange}></input>
-                <button disabled={!keno.ready || selecting || sending} onClick={plusRound}>{">>"}</button>
-                <input disabled={!keno.ready || selecting || sending} type="submit"></input>
+        <DisplayWrapper>
+            <div>
+                <p>block to next round: {countdown}</p>
+            </div>
+            <div className="title">
+                Select Round
+            </div>
+            <form
+                className="form-block"
+                onSubmit={handleSubmit}    
+            >
+                <div className="field-block">
+                    <input
+                        className="textfield"
+                        disabled={!keno.ready || selecting || sending} 
+                        type="text" 
+                        value={round} 
+                        onChange={handleNumberChange}
+                    />
+                    <button
+                        className="current button"
+                        disabled={!keno.ready || selecting || sending} 
+                        onClick={currentRound}
+                    >
+                        current Round
+                    </button>
+                    <input
+                        className="submit button"
+                        disabled={!keno.ready || selecting || sending} 
+                        type="submit"
+                    />
+                </div>
+                
             </form>
-        </>
+        </DisplayWrapper>
     )
 }
 
-export default Display;
+const DisplayWrapper = styled.div`
+
+    width: 90vw;
+    margin: auto;
+
+    .title {
+        font-size: 26px;
+        margin-bottom: 20px;
+    }
+
+    .field-block {
+        display: flex;
+        gap: 20px;
+        margin-bottom: 50px;
+    }
+
+    .textfield {
+        border: 2px solid white;
+        background-color: rgb(51, 51, 51);
+        color: white;
+    }
+
+    .button {
+        cursor: pointer;
+        height: 30px;
+        padding: 5px 10px;
+        background-color: white;
+        border: none
+    }
+    
+    .button: hover {
+        background-color: lightblue;
+    }
+    
+`
+
+export default Display

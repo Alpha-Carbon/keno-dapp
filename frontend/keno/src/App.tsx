@@ -8,6 +8,7 @@ import useWeb3, { Web3Provider } from './hooks/useWeb3'
 import { useKeno } from './hooks/useKeno'
 import CurrentRoundPlayer from './components/currentRoundPlayer';
 import RoundWinner from './components/roundWinner';
+import styled from 'styled-components'
 
 function App() {
   return (
@@ -21,16 +22,29 @@ function App() {
 
 interface KenoContainerProps {
   container: HTMLDivElement
+  rule: any
+  contract: any
+  currentBlock: any
+  actions: any
+  controller: any
 }
 
-const KenoContainer: React.FC<KenoContainerProps> = ({ container }) => {
+const KenoContainer: React.FC<KenoContainerProps> = ({ container, rule, contract, actions, currentBlock, controller }) => {
   let c: HTMLDivElement | null;
   useEffect(() => {
     c!.appendChild(container);
   }, []);
 
   return (
-    <div ref={node => c = node}>
+    <div ref={node => c = node} className="keno-container">
+      <Game
+        rule={rule}
+        contract={contract}
+        currentBlock={currentBlock}
+        readyToTransact={actions.ready}
+        keno={controller}
+        className="game-controller"
+      />
     </div>
   );
 }
@@ -43,9 +57,16 @@ function Wrapper() {
   const { controller, selecting, container } = useKeno()
 
   return (
-    <>
+    <WrapperView>
       <Web3Connect />
-      <KenoContainer container={container} />
+      <KenoContainer 
+        container={container}
+        rule={rule}
+        contract={contract}
+        currentBlock={currentBlock}
+        actions={actions}
+        controller={controller}
+      />
       <ResultDisplay
         currentRoundResult={currentRoundResult}
         rule={rule}
@@ -55,16 +76,24 @@ function Wrapper() {
         keno={controller}
         selecting={selecting}
       />
-      <Game
-        rule={rule}
-        contract={contract}
-        currentBlock={currentBlock}
-        readyToTransact={actions.ready}
-        keno={controller}
-      />
       <CurrentRoundPlayer round={currentRound} />
       <RoundWinner roundWinner={winners} />
-    </>
+    </WrapperView>
   )
 }
+
+const WrapperView = styled.div`
+  background: rgb(51, 51, 51);
+  color: #73DCFF;
+
+  .keno-container {
+    position: relative;
+  }
+
+  .game-controller {
+    position: absolute;
+    bottom: 16%;
+    left: 3%;
+  }
+`
 export default App;

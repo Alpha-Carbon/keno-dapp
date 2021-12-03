@@ -3,6 +3,9 @@ import { Result } from '../types'
 import { BigNumber, ethers } from 'ethers'
 import { GameRule, blockToRound } from '../utils/contract'
 import { KenoController } from '../keno/kenoType'
+import styled from 'styled-components'
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 interface GameProps {
     rule: GameRule | undefined,
@@ -12,6 +15,7 @@ interface GameProps {
     readyToTransact: () => Promise<boolean>
     //
     keno: KenoController
+    className?: string
 }
 
 const Game: React.FC<GameProps> = ({
@@ -21,6 +25,7 @@ const Game: React.FC<GameProps> = ({
     currentBlock,
     readyToTransact,
     keno,
+    className
 }) => {
     const [btnText, setBtnText] = useState('select')
     const [selectedNumbers, setSelectedNumbers] = useState<number[]>([]);
@@ -62,6 +67,8 @@ const Game: React.FC<GameProps> = ({
                 value: await contract!.MINIMUM_PLAY(),
             })
 
+            toast('send successfully')
+
             setResult({
                 message: `Play Transaction Sent, Tx Hash: ${forBlock} | ${res.hash}`,
             })
@@ -76,13 +83,45 @@ const Game: React.FC<GameProps> = ({
     }
 
     return (
-        <>
-            <button onClick={selectButton} disabled={!keno.ready}>{btnText}</button>
-            <button onClick={sendRequest} disabled={!keno.ready || sending}>send</button>
-            <p>selected: {selectedDisplay}</p>
-            <p>result: {result?.message}</p>
-        </>
+        <GameWrapper className={className}>
+            <div className="select">
+                <div>selected: </div>
+                <div className="select-display">{selectedDisplay}</div>
+            </div>
+            
+            <Button onClick={selectButton} disabled={!keno.ready}>{btnText}</Button>
+            <Button onClick={sendRequest} disabled={!keno.ready || sending}>send</Button>
+            <ToastContainer
+                position="top-center"
+            />
+        </GameWrapper>
     );
 }
+
+const GameWrapper = styled.div`
+    color: white;
+    font-size: 20px;
+
+    .select {
+        display: flex;
+        gap: 20px;
+        margin: 20px 0;
+    }
+
+    .result {
+        margin: 20px 0;
+    }
+`
+
+const Button = styled.button`
+    padding: 5px 10px;
+    background-color: white;
+    font-size: 18px;
+    cursor: pointer
+
+    &: hover {
+        background-color: lightblue;
+    }
+`
 
 export default Game;
