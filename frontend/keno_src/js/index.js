@@ -218,7 +218,7 @@ function gameOBJ(target, selectLimit) {
         // }
     }
 
-    window.addEventListener('resize', resize);
+    let parentObserver = new ResizeObserver(resize).observe(target);
     resize();
 
     function draw() {
