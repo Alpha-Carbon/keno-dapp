@@ -218,6 +218,7 @@ function gameOBJ(target, selectLimit) {
         // }
     }
 
+    //#NOTE `ResizeObserver` doesn't support IE, if IE support is required, we can try `resize-observer-polyfill`
     let parentObserver = new ResizeObserver(resize).observe(target);
     resize();
 
