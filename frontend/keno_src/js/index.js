@@ -208,7 +208,8 @@ function gameOBJ(target, selectLimit) {
     function resize() {
         // let minUnit = ~~(Math.min((window.innerHeight) / gameConfig.SCREEN_SCALE_HEIGHT, (window.innerWidth) / gameConfig.SCREEN_SCALE_WIDTH));
         const parent = app.view.parentNode;
-        let minUnit = ~~(Math.min((parent.clientHeight) / gameConfig.SCREEN_SCALE_HEIGHT, (parent.clientWidth) / gameConfig.SCREEN_SCALE_WIDTH));
+        // let minUnit = ~~(Math.min((parent.clientHeight) / gameConfig.SCREEN_SCALE_HEIGHT, (parent.clientWidth) / gameConfig.SCREEN_SCALE_WIDTH));
+        let minUnit = ~~(parent.clientWidth / gameConfig.SCREEN_SCALE_WIDTH);
         // if(minUnit < gameConfig.SCREEN_SCALE_MIN_UNIT) {
         //     app.renderer.resize(gameConfig.SCREEN_MIN_width, gameConfig.SCREEN_MIN_HEIGHT);
         //     mainContainer.scale.set(gameConfig.SCREEN_SCALE_MIN_UNIT/gameConfig.GAME_SCREEN_MIN_UNIT);
