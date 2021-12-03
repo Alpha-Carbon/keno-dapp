@@ -185,6 +185,7 @@ export const Web3Provider: React.FC<{}> = ({ children }) => {
         let drawRate = gameRule.drawRate.toNumber()
         let blockNumber = await provider.getBlockNumber()
         let initRound = BigNumber.from(blockToRound(blockNumber, drawRate))
+        //#TODO should handle no current result exist
         let state = await getContractState(defaultContract, initRound)
         let initDraw = state.draw
 
