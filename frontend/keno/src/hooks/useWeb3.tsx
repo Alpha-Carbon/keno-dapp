@@ -38,7 +38,8 @@ interface ContextActions {
 
 type Context = [ContextData, ContextActions]
 
-let defaultProvider: providers.JsonRpcProvider = new providers.JsonRpcProvider('http://localhost:19932')
+// let defaultProvider: providers.JsonRpcProvider = new providers.JsonRpcProvider('http://localhost:19932')
+let defaultProvider: providers.JsonRpcProvider = new providers.JsonRpcProvider('https://leucine0.node.alphacarbon.network')
 let defaultContract = new ethers.Contract(
     Config(AMINO).contractAddress!,
     Abi,
@@ -129,7 +130,8 @@ export const Web3Provider: React.FC<{}> = ({ children }) => {
             onboard.config({ networkId: network })
             defaultContract.removeAllListeners()
             defaultProvider.removeAllListeners()
-            defaultProvider = new providers.JsonRpcProvider('http://localhost:19932')
+            // defaultProvider = new providers.JsonRpcProvider('http://localhost:19932')
+            defaultProvider = new providers.JsonRpcProvider('https://leucine0.node.alphacarbon.network')
             defaultContract = new ethers.Contract(
                 Config(network).contractAddress!,
                 Abi,
