@@ -2,18 +2,17 @@ import React, {
     useEffect,
     useContext,
     useState,
-    useRef,
     Dispatch,
     SetStateAction,
-    useCallback,
 } from 'react'
-import { ethers, providers, BigNumber } from 'ethers'
+import { ethers, providers, BigNumber, utils } from 'ethers'
 import { API, Wallet, Ens } from 'bnc-onboard/dist/src/interfaces'
 
-import { getGameRule, DrawResult, GameRule } from '../utils/contract'
+import { getGameRule, DrawResult, GameRule, getResult, getRound, getContractState, blockToRound, RoundInfo, RoundWinners, getWinners } from '../utils/contract'
 import { initOnboard } from '../utils/initOnboard'
 import Abi from '../abi/KenoAbi.json'
 import Config, { AMINO } from '../config'
+import { ToastContainer, toast } from 'react-toastify';
 
 interface ContextData {
     address?: string
@@ -22,12 +21,14 @@ interface ContextData {
     balance?: string
     wallet?: Wallet
     onboard?: API
-    rule?: GameRule,
-    currentBlock?: number,
+    rule?: GameRule
+    currentBlock?: number
+    currentRound?: RoundInfo
     currentRoundResult?: DrawResult
     contract?: ethers.Contract
     defaultContract: ethers.Contract
-    getResult: (block: BigNumber) => Promise<BigNumber[]>
+    totalLiabilities?: BigNumber
+    winners?: RoundWinners
 }
 
 interface ContextActions {
@@ -37,7 +38,8 @@ interface ContextActions {
 
 type Context = [ContextData, ContextActions]
 
-let defaultProvider: providers.JsonRpcProvider = new providers.JsonRpcProvider('http://localhost:19932')
+// let defaultProvider: providers.JsonRpcProvider = new providers.JsonRpcProvider('http://localhost:19932')
+let defaultProvider: providers.JsonRpcProvider = new providers.JsonRpcProvider('https://leucine0.node.alphacarbon.network')
 let defaultContract = new ethers.Contract(
     Config(AMINO).contractAddress!,
     Abi,
@@ -45,7 +47,7 @@ let defaultContract = new ethers.Contract(
 )
 let provider: providers.JsonRpcProvider | undefined
 const Web3Context = React.createContext<Context>([
-    { defaultContract, getResult: (block: BigNumber) => Promise.resolve([]) },
+    { defaultContract },
     {
         ready: async () => {
             return false
@@ -62,10 +64,14 @@ export const Web3Provider: React.FC<{}> = ({ children }) => {
     const [onboard, setOnboard] = useState<API>()
     const [activeContract, setActiveContract] = useState<ethers.Contract>()
     const [currentBlock, setCurrentBlock] = useState<number>()
+    const [initFinished, setInitFinished] = useState(false)
 
 
     const [rule, setRule] = useState<GameRule>()
+    const [currentRound, setCurrentRound] = useState<RoundInfo>()
     const [currentRoundResult, setCurrentRoundResult] = useState<DrawResult>()
+    const [totalLiabilities, setTotalLiabilities] = useState<BigNumber>()
+    const [winners, setWinners] = useState<RoundWinners>()
 
     //callback anchors
     // const contractStateRef = useRef<ContractState>()
@@ -77,14 +83,13 @@ export const Web3Provider: React.FC<{}> = ({ children }) => {
     useEffect(() => {
         const onboard = initOnboard({
             address: setAddress,
-            ens: setEns,
+            // ens: setEns,
             network: setNetwork,
             balance: setBalance,
             wallet: (wallet: Wallet) => {
                 // console.log('wallet set')
                 if (wallet.provider) {
                     setWallet(wallet)
-
                     provider = new ethers.providers.Web3Provider(
                         wallet.provider
                     )
@@ -100,9 +105,8 @@ export const Web3Provider: React.FC<{}> = ({ children }) => {
         setOnboard(onboard)
 
         // Get contract data and setup listeners on default contract
-        subscribeResult(defaultProvider, defaultContract, setCurrentRoundResult)
-        subscribeBlock(defaultProvider);
-        (async () => { setRule(await getGameRule(defaultContract)) })()
+        subscribeContractEvents(defaultProvider, defaultContract, setCurrentRoundResult, true)
+        subscribeBlock(defaultProvider, defaultContract)
 
     }, [])
 
@@ -121,12 +125,13 @@ export const Web3Provider: React.FC<{}> = ({ children }) => {
     useEffect(() => {
         ; (async () => {
             console.log('network changed: ', network)
-            if (!network || !onboard) return
+            if (!initFinished || !network || !onboard) return
 
             onboard.config({ networkId: network })
             defaultContract.removeAllListeners()
             defaultProvider.removeAllListeners()
-            defaultProvider = new providers.InfuraProvider(network)
+            // defaultProvider = new providers.JsonRpcProvider('http://localhost:19932')
+            defaultProvider = new providers.JsonRpcProvider('https://leucine0.node.alphacarbon.network')
             defaultContract = new ethers.Contract(
                 Config(network).contractAddress!,
                 Abi,
@@ -134,9 +139,8 @@ export const Web3Provider: React.FC<{}> = ({ children }) => {
             )
 
             // Get contract data and setup listeners on default contract
-            subscribeResult(defaultProvider, defaultContract, setCurrentRoundResult)
-            subscribeBlock(defaultProvider);
-            (async () => { setRule(await getGameRule(defaultContract)) })()
+            subscribeContractEvents(defaultProvider, defaultContract, setCurrentRoundResult, false)
+            subscribeBlock(defaultProvider, defaultContract)
 
 
             if (wallet) {
@@ -156,7 +160,7 @@ export const Web3Provider: React.FC<{}> = ({ children }) => {
             }
             setNetwork(network)
         })()
-    }, [onboard, network, wallet])
+    }, [initFinished, onboard, network, wallet])
 
     // console.log(wallet?.provider)
 
@@ -170,55 +174,101 @@ export const Web3Provider: React.FC<{}> = ({ children }) => {
         return await onboard!.walletCheck()
     }
 
-    async function subscribeResult(
+    async function subscribeContractEvents(
         provider: providers.JsonRpcProvider,
         contract: ethers.Contract,
-        setCurrentRoundResult: Dispatch<SetStateAction<DrawResult | undefined>>
+        setCurrentRoundResult: Dispatch<SetStateAction<DrawResult | undefined>>,
+        init: boolean
     ) {
-        let currentRound = ~~(provider.blockNumber / 5)
-        let result = await getResult(BigNumber.from(currentRound))
-        console.log("currentRound", currentRound)
-        contract.on('Result', async (round: BigNumber, draw: BigNumber[]) => {
+        let gameRule = await getGameRule(defaultContract)
+        setRule(gameRule)
+        let drawRate = gameRule.drawRate.toNumber()
+        let blockNumber = await provider.getBlockNumber()
+        let initRound = BigNumber.from(blockToRound(blockNumber, drawRate))
+        //#TODO should handle no current result exist
+        let state = await getContractState(defaultContract, initRound)
+        let initDraw = state.draw
+
+        contract.on('Result', async (round: BigNumber, currentDraw: BigNumber[]) => {
             if (!currentRoundResult || currentRoundResult.round < round) {
-                console.log("latest", round.toString(), draw.toString())
-                setCurrentRoundResult({ round, draw })
+                setCurrentRoundResult({ round, draw: currentDraw })
+                setCurrentRound(undefined)
+                let roundWinners = await getWinners(defaultContract, round)
+                if (roundWinners) {
+                    setWinners(roundWinners)
+                }
             }
         })
-        setCurrentRoundResult(result)
+        // contract.on('NewEntry', async (round: BigNumber, player: String) => {
+        //     if (provider && currentBlock && blockToRound(currentBlock, drawRate) === round.toNumber() - 1) {
+        //         //#TODO use real getter here
+        //         //#HACK the getter need to be implemented in contract, it was `getRound`
+        //         let result = await getRound(contract, round)
+        //         if (result) {
+        //             setCurrentRound(result)
+        //         }
+        //     } else {
+        //         console.log('NewEntry, but future round')
+        //     }
+        // })
+        contract.on('EntryWins', async (round: BigNumber, player: String, spots: BigNumber[], hits: boolean[], payout: BigNumber) => {
+            console.log('winner', round, player, spots, hits, payout)
+            if (player.toLowerCase() === address) {
+                let reward = utils.formatEther(payout)
+                console.log('you won ' + reward + ' ether')
+                toast('You won!')
+            }
+        })
+
+        if (state)
+            setCurrentRound(state.round)
+        if (initRound) {
+            if (initRound.gte(gameRule.startRound)) {
+                let roundWinners = await getWinners(defaultContract, initRound)
+                if (roundWinners) {
+                    setWinners(roundWinners)
+                }
+            }
+            if (initDraw && initDraw.length !== 0) {
+                setCurrentRoundResult({ round: initRound, draw: initDraw })
+            }
+        }
+        if (init) setInitFinished(true)
+        // console.log("subscribeContractEvents end")
     }
 
-    function subscribeBlock(
+    async function subscribeBlock(
         provider: providers.JsonRpcProvider,
+        contract: ethers.Contract,
     ) {
-        if (!provider.blockNumber) {
-            console.log("no block number")
-        } else {
-            setCurrentBlock(provider.blockNumber)
+        let blockNumber = await provider.getBlockNumber()
+        if (blockNumber && blockNumber !== -1) {
+            setCurrentBlock(blockNumber)
         }
         provider.on('block', async (block) => {
             if (!currentBlock || currentBlock < block) {
                 setCurrentBlock(block)
             }
-        })
-    }
+            if (rule) {
+                const round = blockToRound(block, rule.drawRate.toNumber())
+                const BRound = BigNumber.from(round)
+                if (!currentRoundResult) {
+                    let draw = await getResult(contract, BRound)
+                    if (draw.length !== 0)
+                        setCurrentRoundResult({ round: BRound, draw: draw })
 
 
-    const getResult = useCallback(async (round: BigNumber) => {
-        try {
-            let eventFilter = defaultContract.filters.Result(round)
-            let result = await defaultContract.queryFilter(eventFilter)
-            if (result.length !== 0) {
-                if (result[0].args && result[0].args.length !== 0) {
-                    return result[0].args[1]
                 }
-            } else {
-                return []
-            }
-        } catch (e) {
-            console.log(e)
-        }
-    }, [defaultContract])
 
+                let result = await getRound(contract, BRound.add(1))
+                if (result && (!currentRound || !BRound.eq(currentRound!.round) || result.entries.length !== currentRound!.entries.length)) {
+                    setCurrentRound(result)
+                }
+            }
+            setTotalLiabilities(await contract.totalLiabilities())
+        })
+        setTotalLiabilities(await contract.totalLiabilities())
+    }
 
     const disconnectWallet = () => {
         if (onboard) {
@@ -245,10 +295,12 @@ export const Web3Provider: React.FC<{}> = ({ children }) => {
                     onboard,
                     rule,
                     currentBlock,
+                    currentRound,
                     currentRoundResult,
                     contract: activeContract,
                     defaultContract,
-                    getResult,
+                    totalLiabilities,
+                    winners,
                 },
                 { ready: readyToTransact, disconnect: disconnectWallet },
             ]}

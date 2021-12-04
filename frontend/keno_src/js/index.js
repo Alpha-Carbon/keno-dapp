@@ -1,5 +1,5 @@
 import TweenMax from "gsap/TweenMax";
-import MainLoop from "../node_modules/mainloop.js/build/mainloop.min.js"
+import MainLoop from "mainloop.js"
 import * as PIXI from 'pixi.js'
 import "pixi-sound"
 
@@ -63,7 +63,7 @@ function setup() {
 }
 
 function gameOBJ(target, selectLimit) {
-    console.log("version:", "2021.11.22.1545")
+    // console.log("version:", "2021.11.26.1815")
     let mainContainer = new PIXI.Container();
 
     let countdownTimer;//object
@@ -208,7 +208,8 @@ function gameOBJ(target, selectLimit) {
     function resize() {
         // let minUnit = ~~(Math.min((window.innerHeight) / gameConfig.SCREEN_SCALE_HEIGHT, (window.innerWidth) / gameConfig.SCREEN_SCALE_WIDTH));
         const parent = app.view.parentNode;
-        let minUnit = ~~(Math.min((parent.clientHeight) / gameConfig.SCREEN_SCALE_HEIGHT, (parent.clientWidth) / gameConfig.SCREEN_SCALE_WIDTH));
+        // let minUnit = ~~(Math.min((parent.clientHeight) / gameConfig.SCREEN_SCALE_HEIGHT, (parent.clientWidth) / gameConfig.SCREEN_SCALE_WIDTH));
+        let minUnit = ~~(parent.clientWidth / gameConfig.SCREEN_SCALE_WIDTH);
         // if(minUnit < gameConfig.SCREEN_SCALE_MIN_UNIT) {
         //     app.renderer.resize(gameConfig.SCREEN_MIN_width, gameConfig.SCREEN_MIN_HEIGHT);
         //     mainContainer.scale.set(gameConfig.SCREEN_SCALE_MIN_UNIT/gameConfig.GAME_SCREEN_MIN_UNIT);
@@ -218,7 +219,8 @@ function gameOBJ(target, selectLimit) {
         // }
     }
 
-    window.addEventListener('resize', resize);
+    //#NOTE `ResizeObserver` doesn't support IE, if IE support is required, we can try `resize-observer-polyfill`
+    let parentObserver = new ResizeObserver(resize).observe(target);
     resize();
 
     function draw() {

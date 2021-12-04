@@ -74,6 +74,7 @@ function OBJ_keno(containerOfAll, selectLimit) {
         ball.selected.anchor.set(0.5);
         ball.default
             .on('mousedown', () => {
+                if (!selectMode) return
                 if (addNum(num)) {
                     this.ballSelected()
                 } else {
@@ -237,7 +238,7 @@ function OBJ_keno(containerOfAll, selectLimit) {
     }
 
     let animation;
-    let between = gameConfig.TIME_BALL_FLYING + 0.2;
+    let between = gameConfig.TIME_BALL_FLYING + 0.05;
     this.stop = (result, backToStateWaitFunction) => {
         let TLStartTime = Date.now();
         animation = new animationList(TLStartTime);

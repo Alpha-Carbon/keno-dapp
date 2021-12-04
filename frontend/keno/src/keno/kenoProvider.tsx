@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { KenoContext, INIT_CONTEXT, SelectEvent, PreviousResult } from './kenoContext'
+import { KenoContextType, createInitContext, SelectEvent, PreviousResult } from './kenoType'
 import useWeb3 from '../hooks/useWeb3'
 import { BigNumber } from '@ethersproject/bignumber';
 
@@ -7,10 +7,20 @@ interface KenoProviderProps {
     children?: React.ReactNode;
 }
 
-interface KenoGame { setSelectLimit: (arg0: BigNumber) => void; setTabChangingCallBack: (arg0: (time: number) => void) => void; setFinishCallBack: (arg0: () => void) => void; setGameNumber: (arg0: string[]) => void; reset: (arg0: PreviousResult) => void; setSelectCallback: (arg0: (e: SelectEvent) => void) => void; reverseSelect: any; setSelectMode: any; setTime: any; setTimeWithTimestamp: any; getSelected: any; };
+interface KenoGame {
+    stop: (previousResult: PreviousResult) => boolean; setSelectLimit: (arg0: BigNumber) => void; setTabChangingCallBack: (arg0: (time: number) => void) => void; setFinishCallBack: (arg0: () => void) => void; setGameNumber: (arg0: string[]) => void; reset: (arg0: PreviousResult) => void; setSelectCallback: (arg0: (e: SelectEvent) => void) => void; reverseSelect: any; setSelectMode: any; setTime: any; setTimeWithTimestamp: any; getSelected: any;
+};
+
+const container = (() => {
+    let newContainer = document.createElement('div')
+    newContainer.id = 'kenoContainer'
+    return newContainer
+})()
+
+const INIT_CONTEXT = createInitContext(container)
+export const KenoContext = React.createContext<KenoContextType>(INIT_CONTEXT);
 
 const KenoProvider = ({ children }: KenoProviderProps): React.ReactElement<KenoProviderProps> => {
-    let container = document.getElementById("kenoContainer");
     let game: KenoGame;
     const [controller, setController] = useState(INIT_CONTEXT.controller);
     const [selecting, setSelecting] = useState(INIT_CONTEXT.selecting);
@@ -26,13 +36,13 @@ const KenoProvider = ({ children }: KenoProviderProps): React.ReactElement<KenoP
             number: [],
             info: ['', '', '', '', '']
         };
-        //require src/keno/bundle.js exist, or there'll be errors
-        keno.Load({
+        window.keno.Load({
             sound: "./keno/assets/sound",
             img: "./keno/assets/img",
         })
-        keno.Init(() => {
-            game = new keno.gameOBJ(container, rule?.spots);//input body to append the game
+        window.keno.Init(() => {
+            game = new window.keno.gameOBJ(document.getElementById('kenoContainer'), rule?.spots);//input body to append the game
+            // game = new window.keno.gameOBJ(container, rule?.spots);//input body to append the game
             //get data from server here
 
             game.setTabChangingCallBack((time: number) => { console.log("time since tab unseen " + time) });
@@ -44,7 +54,7 @@ const KenoProvider = ({ children }: KenoProviderProps): React.ReactElement<KenoP
 
 
             // game.setGameNumber(['3141592', 'TE:ST:ING']); // will change game number // can be called any time
-            game.setGameNumber(['  ', '  ']);
+            game.setGameNumber(['  ', '  ', '  ']);
             // game.reset({
             //     number: simLastResult,
             //     // info: ['1410', '大', '单', '前(多)', '双(多)']
@@ -67,6 +77,7 @@ const KenoProvider = ({ children }: KenoProviderProps): React.ReactElement<KenoP
             setController({
                 ready: true,
                 reset: game.reset,
+                stop: game.stop,
                 setGameNumber: game.setGameNumber,
                 reverseSelect,
                 setSelectMode: game.setSelectMode,
@@ -78,17 +89,12 @@ const KenoProvider = ({ children }: KenoProviderProps): React.ReactElement<KenoP
         });
     }
 
-    function mockResult() {
-        return [2, 3, 10, 20, 24, 25, 26, 31, 32, 33, 35, 37, 53, 55, 57, 58, 64, 65, 66, 78];
-    }
-
-
     useEffect(() => {
         initKeno()
     }, []);
 
     return (
-        <KenoContext.Provider value={{ controller, selecting }}>
+        <KenoContext.Provider value={{ controller, selecting, container }}>
             {children}
         </KenoContext.Provider >
     );

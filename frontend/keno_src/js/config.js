@@ -19,7 +19,7 @@ function config() {
     this.SCREEN_MIN_HEIGHT = this.SCREEN_SCALE_HEIGHT * this.SCREEN_SCALE_MIN_UNIT;
     this.SCREEN_MIN_width = this.SCREEN_SCALE_WIDTH * this.SCREEN_SCALE_MIN_UNIT;
     //time parameters
-    this.TIME_BALL_FLYING = 1;
+    this.TIME_BALL_FLYING = 0.3;
 
     //game parameters
     this.BALL_R = 35;
