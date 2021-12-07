@@ -289,4 +289,24 @@ contract KenoTransactions is KenoTest {
         assertEq(address(keno).balance, keno_balance);
         assertEq(address(alice).balance, 100 ether);
     }
+
+
+    function testTotalLiability() public {
+        payable(address(alice)).transfer(100 ether);
+        hevm.roll(block.number + 1);
+
+        uint256 forBlock = keno.startBlock() + 3;
+        uint256[] memory betInfo = new uint256[](3);
+        betInfo[0] = 30;
+        betInfo[1] = 48;
+        betInfo[2] = 26;
+
+        assertEq(keno.totalLiabilities(), 0);
+        alice.play(forBlock, betInfo, 10 ether);
+        assertEq(keno.totalLiabilities(), 250 ether);
+
+        hevm.roll(block.number + 3);
+        keno.executeEntropyForTest(forBlock, 2758876867868697);
+        assertEq(keno.totalLiabilities(), 0);
+    }
 }
