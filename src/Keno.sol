@@ -30,6 +30,8 @@ struct Round {
 contract Keno is Context, Ownable, RandomConsumerBase {
     event Result(uint256 indexed round, uint256[20] draw);
     event NewEntry(uint256 indexed round, address indexed player);
+    event PayoutFailed(uint256 roundNumber, address indexed player, uint256 value);
+
     //#TODO we can store index of Round.entries instead of whole spots data
     event EntryWins(
         uint256 indexed round,
@@ -50,6 +52,7 @@ contract Keno is Context, Ownable, RandomConsumerBase {
     mapping(uint256 => Round) _rounds;
     uint256 public startBlock;
     uint256 public totalLiabilities;
+    uint256 public entranceCounter;
 
     // https://masslottery.com/games/draw-and-instants/keno/how-to-play
     constructor() {
@@ -90,15 +93,21 @@ contract Keno is Context, Ownable, RandomConsumerBase {
 
     receive() external payable {}
 
+    modifier entranceGuard() {
+        entranceCounter += 1;
+        require(entranceCounter == 1, "That is not allowed");
+        _;
+        entranceCounter = 0;
+    }
+
     function executeImpl(uint256 forBlock, uint256 entropy)
         internal
         virtual
-        override
+        override entranceGuard()
     {
         // only draw results at the specified block draw rate
         if (forBlock % DRAW_RATE != 0) return;
         uint256 roundNumber = forBlock / DRAW_RATE;
-
         uint256[20] memory drawing = draw(forBlock, entropy);
 
         Round storage currentRound = _rounds[roundNumber];
@@ -136,10 +145,6 @@ contract Keno is Context, Ownable, RandomConsumerBase {
             totalLiabilities -= entry.maxPayout;
 
             if (payout > 0) {
-                // https://consensys.net/diligence/blog/2019/09/stop-using-soliditys-transfer-now/
-                (bool success, ) = entry.player.call{value: payout}("");
-                require(success, "payout failed.");
-
                 emit EntryWins(
                     roundNumber,
                     entry.player,
@@ -147,6 +152,12 @@ contract Keno is Context, Ownable, RandomConsumerBase {
                     hits,
                     payout
                 );
+
+                // the fail to payout one of player shouldn't affect others' payout
+                bool success= entry.player.send(payout);
+                if (!success) {
+                    emit PayoutFailed(roundNumber, entry.player, payout);
+                }
             }
         }
 

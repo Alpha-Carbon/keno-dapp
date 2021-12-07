@@ -297,9 +297,9 @@ contract KenoTransactions is KenoTest {
 
         uint256 forBlock = keno.startBlock() + 3;
         uint256[] memory betInfo = new uint256[](3);
-        betInfo[0] = 30;
-        betInfo[1] = 48;
-        betInfo[2] = 26;
+        betInfo[0] = 34;
+        betInfo[1] = 1;
+        betInfo[2] = 48;
 
         assertEq(keno.totalLiabilities(), 0);
         alice.play(forBlock, betInfo, 10 ether);
@@ -308,5 +308,35 @@ contract KenoTransactions is KenoTest {
         hevm.roll(block.number + 3);
         keno.executeEntropyForTest(forBlock, 2758876867868697);
         assertEq(keno.totalLiabilities(), 0);
+    }
+
+}
+
+
+contract KenoAttack is KenoTest {
+    function testReEntryAttack() public {
+        AbnormalUser sam = new AbnormalUser(payable(keno));
+        (bool success, ) = payable(address(sam)).call{value: 100 ether}("");
+        assertTrue(success);
+
+        hevm.roll(block.number + 1);
+
+        uint256 forBlock = keno.startBlock() + 3;
+        uint256[] memory betInfo = new uint256[](3);
+        betInfo[0] = 34;
+        betInfo[1] = 1;
+        betInfo[2] = 48;
+
+        assertEq(address(keno).balance, 1000 ether);
+        sam.play(forBlock, betInfo, 10 ether);
+
+        assertEq(address(keno).balance, 1010 ether);
+        assertEq(address(sam).balance, 90 ether);
+
+        hevm.roll(block.number + (forBlock - block.number));
+        keno.executeEntropyForTest{gas: 1 ether}(block.number, 2758876867868697);
+
+        assertEq(address(keno).balance, 1010 ether);
+        assertEq(address(sam).balance, 90 ether);
     }
 }

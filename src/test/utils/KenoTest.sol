@@ -4,6 +4,7 @@ import "ds-test/test.sol";
 
 import "../../Keno.sol";
 import "./Hevm.sol";
+import "../../../lib/ds-test/src/test.sol";
 
 contract User {
     Keno internal keno;
@@ -22,6 +23,32 @@ contract User {
 
     receive() external payable {}
 }
+
+
+contract AbnormalUser is DSTest{
+    Keno internal keno;
+    uint8 counter = 0;
+
+    constructor(address payable _keno) {
+        keno = Keno(_keno);
+    }
+
+    function play(uint256 forBlock, uint256[] memory numbers, uint256 price) public {
+        keno.play{ value: price }(forBlock, numbers);
+    }
+
+    receive() external payable {
+        if (msg.sender == address(keno)) {
+            if (counter < 3) {
+                counter += 1;
+                keno.executeEntropyForTest(block.number, 2758876867868697);
+            }
+        } else {
+            counter = 0;
+        }
+    }
+}
+
 
 contract KenoTest is DSTest {
 	//to move evm foward 12 minutes:
