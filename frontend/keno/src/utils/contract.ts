@@ -3,7 +3,7 @@ import { ethers, BigNumber } from 'ethers'
 export interface GameRule {
     drawRate: BigNumber
     spots: BigNumber
-    startBlock: BigNumber
+    startBlock: number
     startRound: BigNumber
 }
 
@@ -70,11 +70,12 @@ export interface ContractState {
 
 export async function getContractState(
     contract: ethers.Contract,
-    round: BigNumber
+    round: BigNumber,
+    drawRate: BigNumber
 ): Promise<ContractState> {
     // console.log('querying contract...')
     const [draw, roundResult] = await Promise.all([
-        getResult(contract, round),
+        getResult(contract, round, drawRate),
         getRound(contract, round.add(1)),
     ])
 
@@ -104,11 +105,12 @@ export async function getRound(
 
 export async function getResult(
     contract: ethers.Contract | undefined,
-    round: BigNumber
+    round: BigNumber,
+    drawRate: BigNumber
 ): Promise<BigNumber[]> {
     if (!contract) return []
     let eventFilter = contract.filters.Result(round)
-    let result = await contract.queryFilter(eventFilter)
+    let result = await contract.queryFilter(eventFilter, round.mul(drawRate).toNumber())
     if (result.length !== 0) {
         if (result[0].args && result[0].args.length !== 0) {
             return result[0].args[1]
@@ -119,11 +121,12 @@ export async function getResult(
 
 export async function getWinners(
     contract: ethers.Contract | undefined,
-    round: BigNumber
+    round: BigNumber,
+    drawRate: BigNumber
 ): Promise<RoundWinners | undefined> {
     if (!contract) return undefined
     const eventFilter = contract.filters.EntryWins(round)
-    const winnersEvt = await contract.queryFilter(eventFilter)
+    const winnersEvt = await contract.queryFilter(eventFilter, round.mul(drawRate).toNumber())
     let winners: Winner[] = []
     if (winnersEvt.length !== 0) {
         winners = winnersEvt.map(v => {

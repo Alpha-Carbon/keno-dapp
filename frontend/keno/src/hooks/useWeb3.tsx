@@ -38,8 +38,11 @@ interface ContextActions {
 
 type Context = [ContextData, ContextActions]
 
-// let defaultProvider: providers.JsonRpcProvider = new providers.JsonRpcProvider('http://localhost:19932')
-let defaultProvider: providers.JsonRpcProvider = new providers.JsonRpcProvider('https://leucine0.node.alphacarbon.network')
+// let defaultUrl = 'http://localhost:19932'
+// let defaultUrl = 'http://localhost:9933'
+let defaultUrl = 'https://leucine0.node.alphacarbon.network'
+
+let defaultProvider: providers.JsonRpcProvider = new providers.JsonRpcProvider(defaultUrl)
 let defaultContract = new ethers.Contract(
     Config(AMINO).contractAddress!,
     Abi,
@@ -125,13 +128,13 @@ export const Web3Provider: React.FC<{}> = ({ children }) => {
     useEffect(() => {
         ; (async () => {
             console.log('network changed: ', network)
-            if (!initFinished || !network || !onboard) return
+            if (!network || !onboard) return
 
             onboard.config({ networkId: network })
             defaultContract.removeAllListeners()
             defaultProvider.removeAllListeners()
             // defaultProvider = new providers.JsonRpcProvider('http://localhost:19932')
-            defaultProvider = new providers.JsonRpcProvider('https://leucine0.node.alphacarbon.network')
+            defaultProvider = new providers.JsonRpcProvider(defaultUrl)
             defaultContract = new ethers.Contract(
                 Config(network).contractAddress!,
                 Abi,
@@ -186,14 +189,14 @@ export const Web3Provider: React.FC<{}> = ({ children }) => {
         let blockNumber = await provider.getBlockNumber()
         let initRound = BigNumber.from(blockToRound(blockNumber, drawRate))
         //#TODO should handle no current result exist
-        let state = await getContractState(defaultContract, initRound)
+        let state = await getContractState(defaultContract, initRound, gameRule.drawRate)
         let initDraw = state.draw
 
         contract.on('Result', async (round: BigNumber, currentDraw: BigNumber[]) => {
-            if (!currentRoundResult || currentRoundResult.round < round) {
+            if (rule && (!currentRoundResult || currentRoundResult.round < round)) {
                 setCurrentRoundResult({ round, draw: currentDraw })
                 setCurrentRound(undefined)
-                let roundWinners = await getWinners(defaultContract, round)
+                let roundWinners = await getWinners(defaultContract, round, rule.drawRate)
                 if (roundWinners) {
                     setWinners(roundWinners)
                 }
@@ -223,8 +226,8 @@ export const Web3Provider: React.FC<{}> = ({ children }) => {
         if (state)
             setCurrentRound(state.round)
         if (initRound) {
-            if (initRound.gte(gameRule.startRound)) {
-                let roundWinners = await getWinners(defaultContract, initRound)
+            if (gameRule && initRound.gte(gameRule.startRound)) {
+                let roundWinners = await getWinners(defaultContract, initRound, gameRule.drawRate)
                 if (roundWinners) {
                     setWinners(roundWinners)
                 }
@@ -253,7 +256,7 @@ export const Web3Provider: React.FC<{}> = ({ children }) => {
                 const round = blockToRound(block, rule.drawRate.toNumber())
                 const BRound = BigNumber.from(round)
                 if (!currentRoundResult) {
-                    let draw = await getResult(contract, BRound)
+                    let draw = await getResult(contract, BRound, rule.drawRate)
                     if (draw.length !== 0)
                         setCurrentRoundResult({ round: BRound, draw: draw })
 

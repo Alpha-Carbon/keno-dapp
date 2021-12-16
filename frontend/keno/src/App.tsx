@@ -59,7 +59,7 @@ function Wrapper() {
   return (
     <WrapperView>
       <Web3Connect />
-      <KenoContainer 
+      <KenoContainer
         container={container}
         rule={rule}
         contract={contract}
@@ -88,6 +88,8 @@ const WrapperView = styled.div`
 
   .keno-container {
     position: relative;
+    width: 80vw;
+    margin: auto;
   }
 
   .game-controller {

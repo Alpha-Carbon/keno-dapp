@@ -25,8 +25,8 @@ const columns = [
     {
         name: 'Hit',
         selector: (row: Winner) => {
-            const hitSpots = row.spots.filter((spot,index) => {
-                if(row.hits[index]) {
+            const hitSpots = row.spots.filter((spot, index) => {
+                if (row.hits[index]) {
                     return spot
                 }
             })
@@ -44,7 +44,7 @@ const RoundWinner: React.FC<RoundWinnerProps> = ({
         if (!roundWinner) return []
         return roundWinner.winners
     }
-    console.log(!!winners)
+    // console.log(!!winners)
 
     useEffect(() => {
         setWinners(getContent(roundWinner))

@@ -196,9 +196,27 @@
                 "internalType": "uint256",
                 "name": "forBlock",
                 "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "entropy",
+                "type": "uint256"
             }
         ],
         "name": "executeEntropy",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "forBlock",
+                "type": "uint256"
+            }
+        ],
+        "name": "executeHistory",
         "outputs": [],
         "stateMutability": "nonpayable",
         "type": "function"

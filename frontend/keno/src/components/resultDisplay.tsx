@@ -37,7 +37,7 @@ const Display: React.FC<DisplayProps> = ({
     //     if (legalRange && legalRange.length > 1) {
     //         let request = []
     //         for (let i = legalRange[0]; i < legalRange[1]; i++) {
-    //             request.push(getResult(contract, BigNumber.from(i)))
+    //             request.push(getResult(contract, BigNumber.from(i), BigNumber.from(5)))
     //         }
     //         Promise.all(request).then(v => {
     //             for (let i = 0; i < v.length; i++) {
@@ -48,13 +48,17 @@ const Display: React.FC<DisplayProps> = ({
     // }, [legalRange])
 
     function renderGameNumber(result: DrawResult | undefined) {
-        if (!result || !result.round || !result.draw || !rule)
+        if (!rule)
             return
-        let renderRound = result.round
-        let renderDraw = result.draw
-        let gameNumDisplay = ['round ' + renderRound!.toString(),
-        renderDraw.length !== 0 ? 'block ' + renderRound!.add(1).mul(rule.drawRate).toString() : '-',
-        (currentBlock && currentBlock !== -1) ? 'block ' + currentBlock!.toString() : '-']
+        let gameNumDisplay = ['round ', 'block ']
+        if (result && result.round && result.draw) {
+            let renderRound = result.round
+            let renderDraw = result.draw
+            gameNumDisplay[0] += renderRound!.toString()
+            if (renderDraw.length !== 0)
+                gameNumDisplay[1] += renderRound!.add(1).mul(rule.drawRate).toString()
+        }
+        gameNumDisplay.push((currentBlock && currentBlock !== -1) ? 'block ' + currentBlock!.toString() : ' ')
         keno.setGameNumber(gameNumDisplay)
     }
 
@@ -124,7 +128,7 @@ const Display: React.FC<DisplayProps> = ({
 
     async function handleSubmit(evt: any) {
         evt.preventDefault()
-        if (!legalRange) return
+        if (!legalRange || !rule) return
         let requestRound = round
         let num = parseInt(round)
         if (!isNaN(num) && num > -1) {
@@ -137,7 +141,7 @@ const Display: React.FC<DisplayProps> = ({
             }
             setSending(true)
             let currentRound = BigNumber.from(requestRound)
-            let draw = await getResult(contract, currentRound)
+            let draw = await getResult(contract, currentRound, rule.drawRate)
             renderResult({
                 round: currentRound,
                 draw,
@@ -192,30 +196,30 @@ const Display: React.FC<DisplayProps> = ({
             </div>
             <form
                 className="form-block"
-                onSubmit={handleSubmit}    
+                onSubmit={handleSubmit}
             >
                 <div className="field-block">
                     <input
                         className="textfield"
-                        disabled={!keno.ready || selecting || sending} 
-                        type="text" 
-                        value={round} 
+                        disabled={!keno.ready || selecting || sending}
+                        type="text"
+                        value={round}
                         onChange={handleNumberChange}
                     />
                     <button
                         className="current button"
-                        disabled={!keno.ready || selecting || sending} 
+                        disabled={!keno.ready || selecting || sending}
                         onClick={currentRound}
                     >
                         current Round
                     </button>
                     <input
                         className="submit button"
-                        disabled={!keno.ready || selecting || sending} 
+                        disabled={!keno.ready || selecting || sending}
                         type="submit"
+                        value="search"
                     />
                 </div>
-                
             </form>
         </DisplayWrapper>
     )
