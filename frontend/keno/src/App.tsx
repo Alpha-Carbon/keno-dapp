@@ -27,9 +27,10 @@ interface KenoContainerProps {
   currentBlock: any
   actions: any
   controller: any
+  currentRoundResult: any
 }
 
-const KenoContainer: React.FC<KenoContainerProps> = ({ container, rule, contract, actions, currentBlock, controller }) => {
+const KenoContainer: React.FC<KenoContainerProps> = ({ container, rule, contract, actions, currentBlock, controller, currentRoundResult }) => {
   let c: HTMLDivElement | null;
   useEffect(() => {
     c!.appendChild(container);
@@ -45,11 +46,15 @@ const KenoContainer: React.FC<KenoContainerProps> = ({ container, rule, contract
         keno={controller}
         className="game-controller"
       />
+      <div className="verify-btn">
+        <a href={`https://oracle-app.alphacarbon.network/verify/keno?address=0x53b96c552Ac100Ca97a2723255470E8549D2401b&block=${currentBlock}&round=${currentRoundResult?.round}&chainId=31337`}>Verify</a>
+      </div>
     </div>
   );
 }
 
 function Wrapper() {
+  document.title="Keno Game"
   const [
     { currentRoundResult, contract, totalLiabilities, rule, currentBlock, currentRound, winners },
     actions
@@ -59,25 +64,32 @@ function Wrapper() {
   return (
     <WrapperView>
       <Web3Connect />
-      <KenoContainer
-        container={container}
-        rule={rule}
-        contract={contract}
-        currentBlock={currentBlock}
-        actions={actions}
-        controller={controller}
-      />
-      <ResultDisplay
-        currentRoundResult={currentRoundResult}
-        rule={rule}
-        currentBlock={currentBlock}
-        totalLiabilities={totalLiabilities}
-        contract={contract}
-        keno={controller}
-        selecting={selecting}
-      />
-      <CurrentRoundPlayer round={currentRound} />
-      <RoundWinner roundWinner={winners} />
+      <div className="game-container">
+        <KenoContainer
+          container={container}
+          rule={rule}
+          contract={contract}
+          currentBlock={currentBlock}
+          actions={actions}
+          controller={controller}
+          currentRoundResult={currentRoundResult}
+        />
+        <div className="result-container">
+          <ResultDisplay
+            currentRoundResult={currentRoundResult}
+            rule={rule}
+            currentBlock={currentBlock}
+            totalLiabilities={totalLiabilities}
+            contract={contract}
+            keno={controller}
+            selecting={selecting}
+          />
+          <CurrentRoundPlayer round={currentRound} />
+          <RoundWinner roundWinner={winners} />
+        </div>
+        
+      </div>
+      
     </WrapperView>
   )
 }
@@ -85,12 +97,42 @@ function Wrapper() {
 const WrapperView = styled.div`
   background: rgb(51, 51, 51);
   color: #73DCFF;
+  height: 100vh;
+  
+  .game-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
 
-  .keno-container {
     position: relative;
-    width: 80vw;
-    margin: auto;
+    top: 50%;
+    transform: translateY(-50%);
+
+    .keno-container {
+      position: relative;
+      width: 65%;
+      margin: auto;
+
+      .verify-btn {
+        position: absolute;
+        bottom: 60%;
+        left: 12%;
+        padding: 5px 10px;
+        background-color: white;
+
+        a {
+          text-decoration: none;
+          color: black;
+        }
+      }
+    }
+
+    .result-container {
+      width: 30%;
+    }
   }
+
+  
 
   .game-controller {
     position: absolute;

@@ -65,7 +65,6 @@ const RoundWinner: React.FC<RoundWinnerProps> = ({
 }
 
 const WinnerWrapper = styled.div`
-    width: 90vw;
     margin: auto;
     margin-top: 50px;
 

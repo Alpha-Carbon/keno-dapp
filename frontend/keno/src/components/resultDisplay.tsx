@@ -227,7 +227,6 @@ const Display: React.FC<DisplayProps> = ({
 
 const DisplayWrapper = styled.div`
 
-    width: 90vw;
     margin: auto;
 
     .title {

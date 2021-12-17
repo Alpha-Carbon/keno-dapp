@@ -55,7 +55,6 @@ const CurrentRoundPlayer: React.FC<CurrentRoundPlayerProps> = ({
 }
 
 const PlayerWrapper = styled.div`
-    width: 90vw;
     margin: 50px auto;
 
     .title {
