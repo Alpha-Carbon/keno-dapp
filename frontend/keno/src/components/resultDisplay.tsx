@@ -189,38 +189,43 @@ const Display: React.FC<DisplayProps> = ({
     return (
         <DisplayWrapper>
             <div>
-                <p>block to next round: {countdown}</p>
-            </div>
-            <div className="title">
-                Select Round
-            </div>
-            <form
-                className="form-block"
-                onSubmit={handleSubmit}
-            >
-                <div className="field-block">
-                    <input
-                        className="textfield"
-                        disabled={!keno.ready || selecting || sending}
-                        type="text"
-                        value={round}
-                        onChange={handleNumberChange}
-                    />
-                    <button
-                        className="current button"
-                        disabled={!keno.ready || selecting || sending}
-                        onClick={currentRound}
-                    >
-                        current Round
-                    </button>
-                    <input
-                        className="submit button"
-                        disabled={!keno.ready || selecting || sending}
-                        type="submit"
-                        value="search"
-                    />
+                <div>
+                    <p>block to next round: {countdown}</p>
                 </div>
-            </form>
+                <div className="title">
+                    Select Round
+                </div>
+                <form
+                    className="form-block"
+                    onSubmit={handleSubmit}
+                >
+                    <div className="field-block">
+                        <input
+                            className="textfield"
+                            disabled={!keno.ready || selecting || sending}
+                            type="text"
+                            value={round}
+                            onChange={handleNumberChange}
+                        />
+                        <button
+                            className="current button"
+                            disabled={!keno.ready || selecting || sending}
+                            onClick={currentRound}
+                        >
+                            current Round
+                        </button>
+                        <input
+                            className="submit button"
+                            disabled={!keno.ready || selecting || sending}
+                            type="submit"
+                            value="search"
+                        />
+                    </div>
+                </form>
+            </div>
+            <div className="round-result">
+                Round {round} Result
+            </div>
         </DisplayWrapper>
     )
 }
@@ -228,6 +233,9 @@ const Display: React.FC<DisplayProps> = ({
 const DisplayWrapper = styled.div`
 
     margin: auto;
+    display: flex;
+    background-color: #3A3E45;
+    padding: 10px;
 
     .title {
         font-size: 26px;
@@ -237,7 +245,11 @@ const DisplayWrapper = styled.div`
     .field-block {
         display: flex;
         gap: 20px;
-        margin-bottom: 50px;
+    }
+
+    .round-result {
+        font-size: 32px;
+        margin: auto;
     }
 
     .textfield {

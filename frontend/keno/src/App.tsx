@@ -65,17 +65,17 @@ function Wrapper() {
     <WrapperView>
       <Web3Connect />
       <div className="game-container">
-        <KenoContainer
-          container={container}
-          rule={rule}
-          contract={contract}
-          currentBlock={currentBlock}
-          actions={actions}
-          controller={controller}
-          currentRoundResult={currentRoundResult}
-        />
-        <div className="result-container">
-          <ResultDisplay
+        <div>
+          <KenoContainer
+            container={container}
+            rule={rule}
+            contract={contract}
+            currentBlock={currentBlock}
+            actions={actions}
+            controller={controller}
+            currentRoundResult={currentRoundResult}
+          />
+          {/* <ResultDisplay
             currentRoundResult={currentRoundResult}
             rule={rule}
             currentBlock={currentBlock}
@@ -83,12 +83,16 @@ function Wrapper() {
             contract={contract}
             keno={controller}
             selecting={selecting}
-          />
-          <CurrentRoundPlayer round={currentRound} />
-          <RoundWinner roundWinner={winners} />
+          /> */}
         </div>
         
+        <div className="current-round">
+          <CurrentRoundPlayer round={currentRound} />
+        </div>
       </div>
+        
+      <RoundWinner roundWinner={winners} />
+        
       
     </WrapperView>
   )
@@ -97,21 +101,17 @@ function Wrapper() {
 const WrapperView = styled.div`
   background: rgb(51, 51, 51);
   color: #73DCFF;
-  height: 100vh;
   
   .game-container {
     display: flex;
-    justify-content: center;
-    align-items: center;
-
-    position: relative;
-    top: 50%;
-    transform: translateY(-50%);
+    justify-content: space-between;
+    width: 1140px;
+    margin: auto;
 
     .keno-container {
       position: relative;
-      width: 65%;
-      margin: auto;
+      width: 875px;
+      height: 500px;
 
       .verify-btn {
         position: absolute;
@@ -127,8 +127,11 @@ const WrapperView = styled.div`
       }
     }
 
-    .result-container {
-      width: 30%;
+    .current-round {
+      height: 470px;
+      width: 250px;
+      border-radius: 25px;
+      background-color: white;
     }
   }
 
@@ -136,8 +139,8 @@ const WrapperView = styled.div`
 
   .game-controller {
     position: absolute;
-    bottom: 16%;
-    left: 3%;
+    bottom: 19%;
+    left: 2%;
   }
 `
 export default App;

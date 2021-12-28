@@ -6,6 +6,7 @@ import { KenoController } from '../keno/kenoType'
 import styled from 'styled-components'
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { useKeno } from '../hooks/useKeno'
 
 interface GameProps {
     rule: GameRule | undefined,
@@ -32,6 +33,8 @@ const Game: React.FC<GameProps> = ({
     const [selectedDisplay, setSelectedDisplay] = useState('');
     const [sending, setSending] = useState(false);
     const [result, setResult] = useState<Result>()
+
+    const {selecting} = useKeno()
 
     function selectButton() {
         if (!keno.ready) return
@@ -85,8 +88,12 @@ const Game: React.FC<GameProps> = ({
     return (
         <GameWrapper className={className}>
             <div className="select">
-                <div>selected: </div>
-                <div className="select-display">{selectedDisplay}</div>
+                
+                {selecting ? 
+                    (<div>selecting</div>) 
+                    : (<div className="select-display">selected: {selectedDisplay}</div>)
+                }
+                
             </div>
             
             <Button onClick={selectButton} disabled={!keno.ready}>{btnText}</Button>
@@ -104,7 +111,7 @@ const GameWrapper = styled.div`
 
     .select {
         display: flex;
-        gap: 20px;
+        gap: 10px;
         margin: 20px 0;
     }
 
