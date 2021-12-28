@@ -54,7 +54,7 @@ const KenoContainer: React.FC<KenoContainerProps> = ({ container, rule, contract
 }
 
 function Wrapper() {
-  document.title="Keno Game"
+  document.title = "Keno Game"
   const [
     { currentRoundResult, contract, totalLiabilities, rule, currentBlock, currentRound, winners },
     actions
@@ -75,7 +75,8 @@ function Wrapper() {
             controller={controller}
             currentRoundResult={currentRoundResult}
           />
-          {/* <ResultDisplay
+          {/* #TODO seperate canvas controlling, make it purers */}
+          <ResultDisplay
             currentRoundResult={currentRoundResult}
             rule={rule}
             currentBlock={currentBlock}
@@ -83,17 +84,17 @@ function Wrapper() {
             contract={contract}
             keno={controller}
             selecting={selecting}
-          /> */}
+          />
         </div>
-        
+
         <div className="current-round">
           <CurrentRoundPlayer round={currentRound} />
         </div>
       </div>
-        
+
       <RoundWinner roundWinner={winners} />
-        
-      
+
+
     </WrapperView>
   )
 }
