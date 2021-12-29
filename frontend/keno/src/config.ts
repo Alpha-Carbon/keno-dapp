@@ -32,7 +32,8 @@ const config = {
         contractAddress: '0xC628eCbAf90Ab0062516ca556c0DE9b382a67BbD',
     },
     amino: {
-        contractAddress: '0x53b96c552Ac100Ca97a2723255470E8549D2401b',
+        contractAddress: '0xBD44D0EB1c46B62aFDB06f087f75Da5CA80Aa2e4',
+        // contractAddress: '0x53b96c552Ac100Ca97a2723255470E8549D2401b', //obsolete
         // contractAddress: '0xc01Ee7f10EA4aF4673cFff62710E1D7792aBa8f3',
     },
     gethDev: {

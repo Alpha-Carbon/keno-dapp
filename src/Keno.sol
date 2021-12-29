@@ -188,7 +188,47 @@ contract Keno is Context, Ownable, RandomConsumerBase {
         return picks;
     }
 
-    function play(uint256 forBlock, uint256[] memory numbers) public payable {
+    // play in next comming round automatically
+    function play(uint256[] memory numbers) public payable {
+        uint256 roundNumber = block.number / DRAW_RATE + 1;
+        require(msg.value >= MINIMUM_PLAY, "minimum play amount not met.");
+        require(
+            numbers.length > 0 && numbers.length <= SPOTS,
+            "unsupported spot kind."
+        );
+
+        Round storage round = _rounds[roundNumber];
+        require(!round.resolved, "round has ended.");
+
+        uint256 maxPayout = calculatePayout(
+            numbers.length,
+            numbers.length,
+            msg.value
+        );
+        require(
+            maxPayout < address(this).balance - totalLiabilities,
+            "contract does not have enough free balance to accept entry."
+        );
+
+        for (uint256 i = 0; i < numbers.length; i++) {
+            uint256 number = numbers[i];
+            require(
+                number > 0 && number <= 80,
+                "selected number is out of game range"
+            );
+        }
+        round.entries.push(
+            Entry(payable(_msgSender()), numbers, msg.value, maxPayout)
+        );
+        totalLiabilities += maxPayout;
+        emit NewEntry(roundNumber, _msgSender());
+    }
+
+    // player choose the block to play
+    function playAtBlock(uint256 forBlock, uint256[] memory numbers)
+        public
+        payable
+    {
         uint256 roundNumber = tryGetRoundNumber(forBlock);
         require(msg.value >= MINIMUM_PLAY, "minimum play amount not met.");
         require(
