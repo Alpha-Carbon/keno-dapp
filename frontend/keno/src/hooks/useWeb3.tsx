@@ -195,7 +195,7 @@ export const Web3Provider: React.FC<{}> = ({ children }) => {
         contract.on('Result', async (round: BigNumber, currentDraw: BigNumber[]) => {
             if (rule && (!currentRoundResult || currentRoundResult.round < round)) {
                 setCurrentRoundResult({ round, draw: currentDraw })
-                setCurrentRound(undefined)
+                await getRound(contract, round.add(1)).then(result => setCurrentRound(result))
                 let roundWinners = await getWinners(defaultContract, round, rule.drawRate)
                 if (roundWinners) {
                     setWinners(roundWinners)
@@ -263,10 +263,7 @@ export const Web3Provider: React.FC<{}> = ({ children }) => {
 
                 }
 
-                let result = await getRound(contract, BRound.add(1))
-                if (result && (!currentRound || !BRound.eq(currentRound!.round) || result.entries.length !== currentRound!.entries.length)) {
-                    setCurrentRound(result)
-                }
+                await getRound(contract, BRound.add(1)).then(result => setCurrentRound(result))
             }
             setTotalLiabilities(await contract.totalLiabilities())
         })

@@ -34,7 +34,7 @@ const Game: React.FC<GameProps> = ({
     const [sending, setSending] = useState(false);
     const [result, setResult] = useState<Result>()
 
-    const {selecting} = useKeno()
+    const { selecting } = useKeno()
 
     function selectButton() {
         if (!keno.ready) return
@@ -64,23 +64,23 @@ const Game: React.FC<GameProps> = ({
         try {
             let selectedNum = selectedNumbers.map(v => BigNumber.from(v))
 
-            let drawRate = rule!.drawRate.toNumber()
-            let forBlock = (blockToRound(currentBlock, drawRate) + 1) * drawRate
-            let res = await contract!.play(forBlock, selectedNum, {
+            // let drawRate = rule!.drawRate.toNumber()
+            // let forBlock = (blockToRound(currentBlock, drawRate) + 1) * drawRate
+            let res = await contract!.play(selectedNum, {
                 value: await contract!.MINIMUM_PLAY(),
             })
 
             toast('send successfully')
 
-            setResult({
-                message: `Play Transaction Sent, Tx Hash: ${forBlock} | ${res.hash}`,
-            })
+            // setResult({
+            //     message: `Play Transaction Sent, Tx Hash: ${forBlock} | ${res.hash}`,
+            // })
         } catch (e: any) {
             console.log(`tx response: ${e.message}`)
-            setResult({
-                message: `Play Transaction Error: ${e.message}`,
-                err: e as Error,
-            })
+            // setResult({
+            //     message: `Play Transaction Error: ${e.message}`,
+            //     err: e as Error,
+            // })
         }
         setSending(false)
     }
@@ -88,14 +88,14 @@ const Game: React.FC<GameProps> = ({
     return (
         <GameWrapper className={className}>
             <div className="select">
-                
-                {selecting ? 
-                    (<div>selecting</div>) 
+
+                {selecting ?
+                    (<div>selecting</div>)
                     : (<div className="select-display">selected: {selectedDisplay}</div>)
                 }
-                
+
             </div>
-            
+
             <Button onClick={selectButton} disabled={!keno.ready}>{btnText}</Button>
             <Button onClick={sendRequest} disabled={!keno.ready || sending}>send</Button>
             <ToastContainer
