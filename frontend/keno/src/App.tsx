@@ -47,7 +47,7 @@ const KenoContainer: React.FC<KenoContainerProps> = ({ container, rule, contract
         className="game-controller"
       />
       <div className="verify-btn">
-        <a href={`https://oracle-app.alphacarbon.network/verify/keno?address=${contract?.address}&block=${currentBlock}&round=${currentRoundResult?.round}&chainId=31337`}
+        <a href={`https://oracle-app.alphacarbon.network/verify/keno?address=${contract?.address}&block=${currentRoundResult?.round * rule?.drawRate.toNumber()}&round=${currentRoundResult?.round}&chainId=31337`}
           target="_blank"
           rel="noopener noreferrer">Verify</a>
       </div>
