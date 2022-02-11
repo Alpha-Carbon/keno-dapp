@@ -9,24 +9,27 @@ import "@openzeppelin/contracts/utils/Context.sol";
 
 interface IRandomProvider {
     /**
-     * @dev Queries historic entropy from VRF Oracle storage 
-     * 
-     * Returns uint256 
+     * @dev Queries historic entropy from VRF Oracle storage
+     *
+     * Returns uint256
      */
-    function getEntropy(uint256 forBlock) external view returns (uint256 entropy);
-    
+    function getEntropy(uint256 forBlock)
+        external
+        view
+        returns (uint256 entropy);
+
     /**
-     * @dev checks the `address` is currently an Oracle 
-     *  
+     * @dev checks the `address` is currently an Oracle
+     *
      */
-	function requireOracle(address sender) external;
+    function requireOracle(address sender) external;
 }
 
 /**
  * *****************************************************************************
  * @dev USAGE
  *
- * @dev Randomness Consumer contracts must inherit from RandomConsumerBase and 
+ * @dev Randomness Consumer contracts must inherit from RandomConsumerBase and
  * implement `randomCallbackImpl` to override the virtual base function.
  *
  * @dev   contract MyContract is RandomConsumerBase {
@@ -36,29 +39,31 @@ interface IRandomProvider {
  * @dev   }
  * */
 abstract contract RandomConsumerBase is Context {
-    IRandomProvider RandomProvider = IRandomProvider(0x0000000000000000000000000000000000000801);
+    IRandomProvider RandomProvider =
+        IRandomProvider(0x0000000000000000000000000000000000000801);
 
     /**
      * @dev Receives `entropy` for `forBlock`.  Contract must override this function
-     * 
+     *
      * Returns null
      */
-	function executeImpl(uint256 forBlock, uint256 entropy) internal virtual;
+    function executeImpl(uint256 forBlock, uint256 entropy) internal virtual;
 
     /**
      * @dev `executeEntropy` attempts to query the stored entropy in the chain `forBlock`
-	 * and delegates the data to the `executeImpl`
-     * 
+     * and delegates the data to the `executeImpl`
+     *
      * Returns null
      */
     function executeEntropy(uint256 forBlock) external {
-		uint256 entropy = RandomProvider.getEntropy(forBlock);
+        uint256 entropy = RandomProvider.getEntropy(forBlock);
         executeImpl(forBlock, entropy);
     }
 
-	//#FIXME maybe we should inject the IRandomProvider to a test-specific provider instead of
-	//putting this here just for tests
-    function executeEntropyForTest(uint256 forBlock, uint256 entropy) external {
-        executeImpl(forBlock, entropy);
-    }
+    //#NOTE enable this on test
+    //#FIXME maybe we should inject the IRandomProvider to a test-specific provider instead of
+    //putting this here just for tests
+    // function executeEntropyForTest(uint256 forBlock, uint256 entropy) external {
+    //     executeImpl(forBlock, entropy);
+    // }
 }
