@@ -131,12 +131,14 @@ contract Keno is Context, Ownable, RandomConsumerBase {
             } else {
                 payout = calculatePayout(spots, hitsCounter, entry.value);
             }
+
+            //update liabilities
+            totalLiabilities -= entry.maxPayout;
+
             if (payout > 0) {
                 // https://consensys.net/diligence/blog/2019/09/stop-using-soliditys-transfer-now/
                 (bool success, ) = entry.player.call{value: payout}("");
                 require(success, "payout failed.");
-                //update liabilities
-                totalLiabilities -= payout;
                 emit EntryWins(
                     roundNumber,
                     entry.player,
