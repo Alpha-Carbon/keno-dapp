@@ -4,6 +4,7 @@ import "ds-test/test.sol";
 
 import "../../Keno.sol";
 import "./Hevm.sol";
+import "../../../lib/ds-test/src/test.sol";
 
 contract User {
     Keno internal keno;
@@ -23,7 +24,37 @@ contract User {
     receive() external payable {}
 }
 
+
+contract AbnormalUser is DSTest{
+    Keno internal keno;
+    uint8 counter = 0;
+
+    constructor(address payable _keno) {
+        keno = Keno(_keno);
+    }
+
+    function play(uint256 forBlock, uint256[] memory numbers, uint256 price) public {
+        keno.play{ value: price }(forBlock, numbers);
+    }
+
+    receive() external payable {
+        if (msg.sender == address(keno)) {
+            if (counter < 3) {
+                counter += 1;
+                keno.executeEntropyForTest(block.number, 2758876867868697);
+            }
+        } else {
+            counter = 0;
+        }
+    }
+}
+
+
 contract KenoTest is DSTest {
+	//to move evm foward 12 minutes:
+	//hevm.warp(12 minutes);
+	//to move evm forward 5 blocks: 
+	//hevm.roll(5);
     Hevm internal constant hevm = Hevm(HEVM_ADDRESS);
 
     // contracts
@@ -35,6 +66,10 @@ contract KenoTest is DSTest {
     User internal bob;
 
     function setUp() public virtual {
+		// start at a random block, so we can test exploit of
+		// trying to resolve games before contract creation
+		hevm.roll(5);
+
         keno = new Keno();
 
 		(bool success,) = payable(keno).call{value: 1000 ether}("");
@@ -45,5 +80,9 @@ contract KenoTest is DSTest {
         bob = new User(payable(keno));
 
         keno.transferOwnership(address(owner));
+
+		// advance chain by 1 block, the soonest possible 
+		// `play` is after the contract's `startBlock`
+		hevm.roll(1);
     }
 }

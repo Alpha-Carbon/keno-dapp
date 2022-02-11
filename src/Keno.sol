@@ -56,6 +56,7 @@ contract Keno is Context, Ownable, RandomConsumerBase {
     mapping(uint256 => Round) _rounds;
     uint256 public startBlock;
     uint256 public totalLiabilities;
+    uint256 public entranceCounter;
 
     // https://masslottery.com/games/draw-and-instants/keno/how-to-play
     constructor() {
@@ -96,15 +97,22 @@ contract Keno is Context, Ownable, RandomConsumerBase {
 
     receive() external payable {}
 
+    modifier entranceGuard() {
+        entranceCounter += 1;
+        require(entranceCounter == 1, "That is not allowed");
+        _;
+        entranceCounter = 0;
+    }
+
     function executeImpl(uint256 forBlock, uint256 entropy)
         internal
         virtual
         override
+        entranceGuard
     {
         // only draw results at the specified block draw rate
         if (forBlock % DRAW_RATE != 0) return;
         uint256 roundNumber = forBlock / DRAW_RATE;
-
         uint256[20] memory drawing = draw(forBlock, entropy);
 
         Round storage currentRound = _rounds[roundNumber];
