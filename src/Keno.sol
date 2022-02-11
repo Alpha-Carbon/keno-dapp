@@ -30,6 +30,12 @@ struct Round {
 contract Keno is Context, Ownable, RandomConsumerBase {
     event Result(uint256 indexed round, uint256[20] draw);
     event NewEntry(uint256 indexed round, address indexed player);
+    event PayoutFailed(
+        uint256 roundNumber,
+        address indexed player,
+        uint256 value
+    );
+
     //#TODO we can store index of Round.entries instead of whole spots data
     event EntryWins(
         uint256 indexed round,
@@ -136,9 +142,6 @@ contract Keno is Context, Ownable, RandomConsumerBase {
             totalLiabilities -= entry.maxPayout;
 
             if (payout > 0) {
-                // https://consensys.net/diligence/blog/2019/09/stop-using-soliditys-transfer-now/
-                (bool success, ) = entry.player.call{value: payout}("");
-                require(success, "payout failed.");
                 emit EntryWins(
                     roundNumber,
                     entry.player,
@@ -146,6 +149,12 @@ contract Keno is Context, Ownable, RandomConsumerBase {
                     hits,
                     payout
                 );
+
+                // the fail to payout one of player shouldn't affect others' payout
+                bool success = entry.player.send(payout);
+                if (!success) {
+                    emit PayoutFailed(roundNumber, entry.player, payout);
+                }
             }
         }
 
