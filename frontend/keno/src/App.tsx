@@ -55,6 +55,11 @@ const KenoContainer: React.FC<KenoContainerProps> = ({ container, rule, contract
   );
 }
 
+const BlurFilter = styled.div`
+  filter: blur(8px);  
+  -webkit-filter: blur(8px);
+`
+
 function Wrapper() {
   document.title = "Keno Game"
   const [
@@ -63,20 +68,21 @@ function Wrapper() {
   ] = useWeb3()
   const { controller, selecting, container } = useKeno()
 
+  let keno = (<KenoContainer
+    container={container}
+    rule={rule}
+    contract={contract}
+    currentBlock={currentBlock}
+    actions={actions}
+    controller={controller}
+    currentRoundResult={currentRoundResult}
+  />)
   return (
     <WrapperView>
       <Web3Connect />
       <div className="game-container">
         <div>
-          <KenoContainer
-            container={container}
-            rule={rule}
-            contract={contract}
-            currentBlock={currentBlock}
-            actions={actions}
-            controller={controller}
-            currentRoundResult={currentRoundResult}
-          />
+          {actions.chainInit ? keno : (<BlurFilter>{keno}</BlurFilter>)}
           {/* #TODO seperate canvas controlling, make it purers */}
           <ResultDisplay
             currentRoundResult={currentRoundResult}
