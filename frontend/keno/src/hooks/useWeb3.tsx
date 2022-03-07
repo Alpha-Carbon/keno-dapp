@@ -34,6 +34,7 @@ interface ContextData {
 interface ContextActions {
     ready: () => Promise<boolean> // function as property declaration
     disconnect: () => void
+    chainInit: boolean
 }
 
 type Context = [ContextData, ContextActions]
@@ -56,8 +57,14 @@ const Web3Context = React.createContext<Context>([
             return false
         },
         disconnect: () => { },
+        chainInit: false,
     },
 ])
+
+function validNetwork(network: number) {
+    return network === 31337
+}
+
 export const Web3Provider: React.FC<{}> = ({ children }) => {
     const [address, setAddress] = useState<string>()
     const [ens, setEns] = useState<Ens>()
@@ -128,7 +135,11 @@ export const Web3Provider: React.FC<{}> = ({ children }) => {
     useEffect(() => {
         ; (async () => {
             console.log('network changed: ', network)
-            if (!network || !onboard) return
+            if (!network || !initFinished || !onboard) return
+            if (!validNetwork(network)) {
+                toast("Network: " + network + " not supported")
+                return
+            }
 
             onboard.config({ networkId: network })
             defaultContract.removeAllListeners()
@@ -302,7 +313,7 @@ export const Web3Provider: React.FC<{}> = ({ children }) => {
                     totalLiabilities,
                     winners,
                 },
-                { ready: readyToTransact, disconnect: disconnectWallet },
+                { ready: readyToTransact, disconnect: disconnectWallet, chainInit: initFinished },
             ]}
         >
             {children}
