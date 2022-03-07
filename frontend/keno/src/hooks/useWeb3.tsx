@@ -204,10 +204,10 @@ export const Web3Provider: React.FC<{}> = ({ children }) => {
         let initDraw = state.draw
 
         contract.on('Result', async (round: BigNumber, currentDraw: BigNumber[]) => {
-            if (rule && (!currentRoundResult || currentRoundResult.round < round)) {
+            if (gameRule && (!currentRoundResult || currentRoundResult.round < round)) {
                 setCurrentRoundResult({ round, draw: currentDraw })
                 await getRound(contract, round.add(1)).then(result => setCurrentRound(result))
-                let roundWinners = await getWinners(defaultContract, round, rule.drawRate)
+                let roundWinners = await getWinners(defaultContract, round, gameRule.drawRate)
                 if (roundWinners) {
                     setWinners(roundWinners)
                 }
@@ -256,6 +256,7 @@ export const Web3Provider: React.FC<{}> = ({ children }) => {
         contract: ethers.Contract,
     ) {
         let blockNumber = await provider.getBlockNumber()
+        let gameRule = await getGameRule(defaultContract)
         if (blockNumber && blockNumber !== -1) {
             setCurrentBlock(blockNumber)
         }
@@ -263,15 +264,13 @@ export const Web3Provider: React.FC<{}> = ({ children }) => {
             if (!currentBlock || currentBlock < block) {
                 setCurrentBlock(block)
             }
-            if (rule) {
-                const round = blockToRound(block, rule.drawRate.toNumber())
+            if (gameRule) {
+                const round = blockToRound(block, gameRule.drawRate.toNumber())
                 const BRound = BigNumber.from(round)
                 if (!currentRoundResult) {
-                    let draw = await getResult(contract, BRound, rule.drawRate)
+                    let draw = await getResult(contract, BRound, gameRule.drawRate)
                     if (draw.length !== 0)
                         setCurrentRoundResult({ round: BRound, draw: draw })
-
-
                 }
 
                 await getRound(contract, BRound.add(1)).then(result => setCurrentRound(result))
