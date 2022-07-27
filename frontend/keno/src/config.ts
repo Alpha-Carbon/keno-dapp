@@ -3,6 +3,7 @@ export const ROPSTEN = 3
 export const KOVAN = 42
 export const RINKEBY = 4
 export const AMINO = 31337
+export const AMINOX = 13370
 export const GETH_DEV = 1337
 export const supportedChains = [
     MAINNET,
@@ -10,6 +11,7 @@ export const supportedChains = [
     // KOVAN,
     RINKEBY,
     AMINO,
+    AMINOX,
     GETH_DEV,
 ]
 
@@ -36,6 +38,9 @@ const config = {
         // contractAddress: '0x53b96c552Ac100Ca97a2723255470E8549D2401b', //obsolete
         // contractAddress: '0xc01Ee7f10EA4aF4673cFff62710E1D7792aBa8f3',
     },
+    aminox: {
+        contractAddress: '0xAb2Ef5684Cf32E61901A9dceF36b1cf0Ae80f631',
+    },
     gethDev: {
         contractAddress: '0x5640545abF63e10e09d1a8dCC5A3caE951872295',
     },
@@ -53,6 +58,8 @@ export default function Configure(chainId: number): Config {
             return config.rinkeby
         case AMINO:
             return config.amino
+        case AMINOX:
+            return config.aminox
         case GETH_DEV:
             return config.gethDev
         default:

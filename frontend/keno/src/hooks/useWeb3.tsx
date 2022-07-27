@@ -11,7 +11,7 @@ import { API, Wallet, Ens } from 'bnc-onboard/dist/src/interfaces'
 import { getGameRule, DrawResult, GameRule, getResult, getRound, getContractState, blockToRound, RoundInfo, RoundWinners, getWinners } from '../utils/contract'
 import { initOnboard } from '../utils/initOnboard'
 import Abi from '../abi/KenoAbi.json'
-import Config, { AMINO } from '../config'
+import Config, { AMINO, AMINOX } from '../config'
 import { ToastContainer, toast } from 'react-toastify';
 
 interface ContextData {
@@ -41,11 +41,13 @@ type Context = [ContextData, ContextActions]
 
 // let defaultUrl = 'http://localhost:19932'
 // let defaultUrl = 'http://localhost:9933'
-let defaultUrl = 'https://leucine0.node.alphacarbon.network'
+// let defaultUrl = 'https://leucine0.node.alphacarbon.network'
+let defaultUrl = 'https://aminoxtestnet.node.alphacarbon.network'
 
 let defaultProvider: providers.JsonRpcProvider = new providers.JsonRpcProvider(defaultUrl)
 let defaultContract = new ethers.Contract(
-    Config(AMINO).contractAddress!,
+    // Config(AMINO).contractAddress!,
+    Config(AMINOX).contractAddress!,
     Abi,
     defaultProvider
 )
@@ -62,7 +64,7 @@ const Web3Context = React.createContext<Context>([
 ])
 
 function validNetwork(network: number) {
-    return network === 31337
+    return network === 31337 || network === 13370
 }
 
 export const Web3Provider: React.FC<{}> = ({ children }) => {
